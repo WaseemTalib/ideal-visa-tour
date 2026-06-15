@@ -1,36 +1,132 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tour & Travel Booking Website
 
-## Getting Started
+A cloud-ready full-stack tour and travel website built with Next.js App Router, TypeScript, Tailwind CSS, Firebase Auth, Firestore, Firebase Storage, Firebase Admin SDK, Server Actions, Zod, Lucide icons, and Sonner notifications.
 
-First, run the development server:
+## Features
+
+- Public landing page, package search, package listing, package details, group packages, about, and contact pages.
+- Firestore-backed package search by location, date range, package type, travelers, duration, featured status, and budget.
+- Contact and booking inquiries saved to Firestore.
+- Protected `/dashboard` admin area using Firebase Auth session cookies.
+- Admin package CRUD, group package management, locations, inquiries, testimonials, and website content.
+- Firebase Storage image upload route for package, site, and testimonial images.
+- One-command seed/setup script. Firebase has no SQL tables or schemas to create.
+
+## 1. Create a Firebase Project
+
+1. Go to `https://console.firebase.google.com`.
+2. Create a Firebase project.
+3. Add a Web App in Project Settings.
+4. Copy the web app config values for the `NEXT_PUBLIC_FIREBASE_*` environment variables.
+
+## 2. Enable Firebase Products
+
+In Firebase Console:
+
+1. Authentication → Sign-in method → enable Email/Password.
+2. Firestore Database → create database.
+3. Storage → create default bucket.
+
+Firestore collections are created automatically by `npm run db:setup`.
+
+## 3. Create Firebase Admin Credentials
+
+Firebase Console → Project Settings → Service accounts → Generate new private key.
+
+From the downloaded JSON, copy:
+
+- `client_email` → `FIREBASE_CLIENT_EMAIL`
+- `private_key` → `FIREBASE_PRIVATE_KEY`
+
+Keep `FIREBASE_PRIVATE_KEY` wrapped in quotes in `.env.local` or `.env`.
+
+## 4. Environment Variables
+
+Copy `.env.example` to `.env.local`:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Fill in:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 
-## Learn More
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
-To learn more about Next.js, take a look at the following resources:
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-this-password
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 5. Seed Firestore and Create Admin
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Run:
 
-## Deploy on Vercel
+```bash
+npm run db:setup
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This automatically creates:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `locations`
+- `packages`
+- `testimonials`
+- `siteSettings`
+- `profiles`
+- the first Firebase Auth admin user, if `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set
+
+## 6. Run Locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+Admin login:
+
+```text
+http://localhost:3000/login
+```
+
+Use `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
+
+## 7. Firebase Rules
+
+Rules are included:
+
+- `firebase/firestore.rules`
+- `firebase/storage.rules`
+
+Deploy them with Firebase CLI if desired:
+
+```bash
+npm install -g firebase-tools
+firebase login
+firebase init firestore storage
+firebase deploy --only firestore:rules,storage
+```
+
+## 8. Deploy on Vercel
+
+1. Push the project to GitHub.
+2. Import it into Vercel.
+3. Add all Firebase environment variables in Vercel Project Settings.
+4. Set `NEXT_PUBLIC_SITE_URL` to your Vercel production URL.
+5. Deploy.
+
+No Express backend, Docker, SQL database, or manual table creation is required.
