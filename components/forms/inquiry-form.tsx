@@ -30,7 +30,7 @@ export function InquiryForm({ packageId, type = "contact" }: { packageId?: strin
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label required>Name</Label>
-          <Input name="name" defaultValue={defaults.name} required />
+          <Input name="name" defaultValue={defaults.name} placeholder="e.g. Ahmed Khan" required />
         </div>
         <div>
           <Label required>Phone</Label>
