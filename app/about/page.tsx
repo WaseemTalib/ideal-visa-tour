@@ -1,10 +1,52 @@
 import type { Metadata } from "next";
-import { Globe2, ShieldCheck, Stamp, Users } from "lucide-react";
+import { Briefcase, ChevronDown, FileCheck2, Globe2, Luggage, MapPin, ShieldCheck, Stamp, Users } from "lucide-react";
 import { Footer } from "@/components/public/footer";
 import { Navbar } from "@/components/public/navbar";
 import { getPackages, getSiteSettings } from "@/lib/data";
 
 export const metadata: Metadata = { title: "About" };
+
+const STEPS = [
+  {
+    Icon: MapPin,
+    title: "Share your destination",
+    text: "Tell us where, when, and how many travelers — by inquiry form, phone, or WhatsApp.",
+  },
+  {
+    Icon: Briefcase,
+    title: "Get a tailored quote",
+    text: "We design hotels, transport, and itinerary around your dates and budget.",
+  },
+  {
+    Icon: FileCheck2,
+    title: "Visa filing handled",
+    text: "We collect documents, complete the application, and track the appointment.",
+  },
+  {
+    Icon: Luggage,
+    title: "Travel with support",
+    text: "Coordinator on call, transfers booked, and 24/7 help on the road.",
+  },
+];
+
+const FAQS = [
+  {
+    q: "Do you handle visa applications, or just packages?",
+    a: "Both. Every international package includes end-to-end visa support — documentation, embassy filing, and follow-up. You can also book visa-only assistance.",
+  },
+  {
+    q: "How far in advance should I book?",
+    a: "For visa-on-arrival destinations (UAE, Maldives), 2–3 weeks is enough. For Schengen, Türkiye, or Thailand, plan 4–8 weeks ahead to allow embassy timelines.",
+  },
+  {
+    q: "What's the payment schedule?",
+    a: "A 50% advance confirms your booking and starts the visa process. The balance is due 7 days before departure.",
+  },
+  {
+    q: "What if my visa is rejected?",
+    a: "Our service fee covers documentation and filing. Embassy fees are non-refundable, but we'll re-apply or refund the tour balance per the contract.",
+  },
+];
 
 const PILLARS = [
   { Icon: Globe2, title: "Worldwide reach", text: "Türkiye, UAE, Malaysia, Thailand, Maldives, and more.", accent: "from-teal-500/30 to-teal-700/30" },
@@ -67,6 +109,70 @@ export default async function AboutPage() {
                 <p className="mt-2 text-sm leading-6 text-slate-300">{text}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="relative bg-white py-20">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-300 to-transparent" />
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Our process</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                Four steps from <span className="text-gradient-teal">first message to take-off</span>
+              </h2>
+              <p className="mt-3 text-slate-600">
+                We keep the moving parts on our side — paperwork, hotel coordination, transfers — so your only job is to pack.
+              </p>
+            </div>
+            <ol className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {STEPS.map(({ Icon, title, text }, index) => (
+                <li
+                  key={title}
+                  className="group relative rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                >
+                  <span className="absolute right-5 top-5 text-xs font-bold uppercase tracking-[0.18em] text-slate-300">
+                    Step {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500/15 to-teal-700/15 text-teal-700 ring-1 ring-teal-100 transition group-hover:rotate-6">
+                    <Icon size={20} />
+                  </span>
+                  <h3 className="mt-4 text-base font-bold text-slate-950">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section className="relative overflow-hidden bg-gradient-to-br from-sand-50 to-white py-20">
+          <div className="pointer-events-none absolute -left-32 top-1/3 size-72 rounded-full bg-teal-500/10 blur-3xl" />
+          <div className="relative mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-500">FAQ</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                Common questions, <span className="text-gradient-sunset">straight answers</span>
+              </h2>
+              <p className="mt-4 max-w-md text-slate-600">
+                Still wondering about something? Send a quick message and our consultant will respond within hours.
+              </p>
+            </div>
+            <div className="grid gap-3">
+              {FAQS.map((faq) => (
+                <details
+                  key={faq.q}
+                  className="group rounded-2xl border border-slate-200/70 bg-white px-5 py-4 shadow-sm transition open:shadow-md"
+                >
+                  <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-sm font-semibold text-slate-900">
+                    <span>{faq.q}</span>
+                    <ChevronDown
+                      size={18}
+                      className="mt-0.5 shrink-0 text-slate-400 transition group-open:rotate-180"
+                    />
+                  </summary>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600">{faq.a}</p>
+                </details>
+              ))}
+            </div>
           </div>
         </section>
       </main>

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Compass, Headphones, Plane, ShieldCheck, Stamp, Star } from "lucide-react";
+import { Compass, CreditCard, FileCheck2, Headphones, Luggage, Plane, Search, ShieldCheck, Stamp, Star } from "lucide-react";
 import { Footer } from "@/components/public/footer";
 import { Navbar } from "@/components/public/navbar";
 import { PackageCard } from "@/components/public/package-card";
@@ -137,6 +137,35 @@ export default async function HomePage() {
           </div>
         </section>
 
+        <section className="relative bg-white py-24">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-300 to-transparent" />
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">How it works</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                From idea to <span className="text-gradient-teal">boarding pass</span> in four steps
+              </h2>
+              <p className="mt-3 text-slate-600">Tell us where you want to go and we&apos;ll handle the rest — visa paperwork, flights, hotels, and ground transfers.</p>
+            </div>
+            <ol className="mt-10 grid gap-4 md:grid-cols-4">
+              {[
+                { Icon: Search, title: "1. Pick a destination", text: "Browse packages or share a custom route with our consultant." },
+                { Icon: FileCheck2, title: "2. Get a visa plan", text: "We confirm your eligibility and prepare the document checklist." },
+                { Icon: CreditCard, title: "3. Book with a deposit", text: "Pay a 50% deposit to confirm seats, hotels, and visa filing." },
+                { Icon: Luggage, title: "4. Travel with support", text: "Hotels, transfers, and a coordinator on call throughout your trip." },
+              ].map(({ Icon, title, text }) => (
+                <li key={title} className="group relative rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                  <span className="inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500/15 to-teal-700/15 text-teal-700 ring-1 ring-teal-100 transition group-hover:rotate-6">
+                    <Icon size={20} />
+                  </span>
+                  <h3 className="mt-4 text-base font-bold text-slate-950">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
         <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950 py-20 text-white">
           <div className="pointer-events-none absolute -top-32 left-1/2 size-96 -translate-x-1/2 rounded-full bg-teal-500/15 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-24 right-10 size-80 rounded-full bg-coral-500/15 blur-3xl" />
@@ -155,6 +184,50 @@ export default async function HomePage() {
                 <p className="mt-2 text-sm leading-6 text-slate-300">{text as string}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="relative overflow-hidden bg-gradient-to-br from-sand-50 to-white py-20">
+          <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div className="max-w-2xl">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-500">Visa-friendly destinations</p>
+                <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                  Countries we file visas for, <span className="text-gradient-sunset">every week</span>
+                </h2>
+                <p className="mt-3 text-slate-600">All of these accept Pakistani passport holders with straightforward documentation timelines.</p>
+              </div>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {[
+                { flag: "🇹🇷", name: "Türkiye", label: "e-Visa · 3-5 days" },
+                { flag: "🇦🇪", name: "United Arab Emirates", label: "Tourist visa · 4-7 days" },
+                { flag: "🇲🇾", name: "Malaysia", label: "e-Visa · 2-4 days" },
+                { flag: "🇹🇭", name: "Thailand", label: "e-Visa · 5-10 days" },
+                { flag: "🇲🇻", name: "Maldives", label: "Visa-on-arrival" },
+                { flag: "🇦🇿", name: "Azerbaijan", label: "e-Visa · 3 days" },
+                { flag: "🇸🇦", name: "Saudi Arabia", label: "Umrah & tourist visas" },
+                { flag: "🇪🇬", name: "Egypt", label: "Visa-on-arrival" },
+              ].map((country) => (
+                <span
+                  key={country.name}
+                  className="inline-flex items-center gap-3 rounded-full border border-slate-200/70 bg-white px-4 py-2 text-sm shadow-sm transition hover:-translate-y-0.5 hover:border-teal-200 hover:shadow-md"
+                >
+                  <span aria-hidden className="text-lg leading-none">{country.flag}</span>
+                  <span>
+                    <span className="block font-semibold text-slate-900">{country.name}</span>
+                    <span className="block text-[11px] font-medium uppercase tracking-wider text-slate-500">{country.label}</span>
+                  </span>
+                </span>
+              ))}
+            </div>
+            <p className="mt-6 text-sm text-slate-600">
+              Need a destination not listed?{" "}
+              <Link href="/contact" className="font-semibold text-teal-700 hover:underline">
+                Ask our visa consultant →
+              </Link>
+            </p>
           </div>
         </section>
 
