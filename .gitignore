@@ -59,3 +59,6 @@ skills-lock.json
 !/public/storage/
 !/public/storage/*/
 !/public/storage/**/.gitkeep
+
+# Deploy script lives on the server only
+deploy.sh
