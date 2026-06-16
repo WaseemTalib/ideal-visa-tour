@@ -1,33 +1,31 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { adminAuth, adminDb } from "@/lib/firebase/admin";
+import { eq } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+import { verifySession, type SessionPayload } from "@/lib/auth/jwt";
 
-export async function getCurrentUser() {
-  const auth = adminAuth();
-  if (!auth) return null;
-  const session = (await cookies()).get("firebase_session")?.value;
-  if (!session) return null;
+export const SESSION_COOKIE = "auth_session";
+
+export async function getCurrentUser(): Promise<SessionPayload | null> {
+  const cookie = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!cookie) return null;
   try {
-    return await auth.verifySessionCookie(session, true);
+    return await verifySession(cookie);
   } catch {
     return null;
   }
 }
 
 export async function requireAdmin() {
-  const auth = adminAuth();
-  const db = adminDb();
-  if (!auth || !db) redirect("/login");
-  const session = (await cookies()).get("firebase_session")?.value;
+  const session = await getCurrentUser();
   if (!session) redirect("/login");
-  let user;
-  try {
-    user = await auth.verifySessionCookie(session, true);
-  } catch {
-    redirect("/login");
-  }
-  if (!user) redirect("/login");
-  const profile = await db.collection("profiles").doc(user.uid).get();
-  if (profile.data()?.role !== "admin") redirect("/login?error=admin-required");
-  return { user, profile: profile.data() };
+  const conn = db();
+  if (!conn) redirect("/login");
+  const [profile] = await conn
+    .select()
+    .from(schema.profiles)
+    .where(eq(schema.profiles.id, session.sub))
+    .limit(1);
+  if (!profile || profile.role !== "admin") redirect("/login?error=admin-required");
+  return { profile, session };
 }

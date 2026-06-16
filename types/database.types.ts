@@ -1,11 +1,3 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
-
 export type Location = {
   id: string;
   name: string;
@@ -26,7 +18,7 @@ export type TravelPackage = {
   short_description: string | null;
   description: string | null;
   main_image_url: string | null;
-  gallery_images: string[] | null;
+  gallery_images: string[];
   from_location_id: string | null;
   to_location_id: string | null;
   price: number;
@@ -41,9 +33,9 @@ export type TravelPackage = {
   group_size: number | null;
   total_seats: number | null;
   seats_available: number | null;
-  included: string[] | null;
-  excluded: string[] | null;
-  itinerary: { day: string; title: string; detail: string }[] | null;
+  included: string[];
+  excluded: string[];
+  itinerary: { day: string; title: string; detail: string }[];
   hotel_details: string | null;
   transport_details: string | null;
   terms: string | null;
@@ -60,8 +52,8 @@ export type TravelPackage = {
 export type Inquiry = {
   id: string;
   name: string;
-  email: string;
-  phone: string | null;
+  email: string | null;
+  phone: string;
   subject: string | null;
   message: string;
   package_id: string | null;
@@ -83,7 +75,7 @@ export type Testimonial = {
   updated_at: string;
 };
 
-export type SiteSettings = Record<string, Json>;
+export type SiteSettings = Record<string, string>;
 
 export type Profile = {
   id: string;
@@ -91,45 +83,4 @@ export type Profile = {
   role: "user" | "admin";
   created_at: string;
   updated_at: string;
-};
-
-type LocationInsert = Omit<Partial<Location>, "id" | "created_at" | "updated_at"> & { id?: string; name: string; slug: string };
-type PackageInsert = Omit<Partial<TravelPackage>, "id" | "created_at" | "updated_at" | "from_location" | "to_location"> & {
-  id?: string;
-  title: string;
-  slug: string;
-};
-type InquiryInsert = Omit<Partial<Inquiry>, "id" | "created_at" | "updated_at" | "package"> & {
-  id?: string;
-  name: string;
-  email: string;
-  message: string;
-};
-type TestimonialInsert = Omit<Partial<Testimonial>, "id" | "created_at" | "updated_at"> & {
-  id?: string;
-  name: string;
-  review: string;
-};
-type ProfileInsert = Omit<Partial<Profile>, "created_at" | "updated_at"> & { id: string };
-
-export type Database = {
-  public: {
-    Tables: {
-      locations: { Row: Location; Insert: LocationInsert; Update: Partial<LocationInsert>; Relationships: [] };
-      packages: { Row: TravelPackage; Insert: PackageInsert; Update: Partial<PackageInsert>; Relationships: [] };
-      inquiries: { Row: Inquiry; Insert: InquiryInsert; Update: Partial<InquiryInsert>; Relationships: [] };
-      testimonials: { Row: Testimonial; Insert: TestimonialInsert; Update: Partial<TestimonialInsert>; Relationships: [] };
-      profiles: { Row: Profile; Insert: ProfileInsert; Update: Partial<ProfileInsert>; Relationships: [] };
-      site_settings: {
-        Row: { id: string; key: string; value: Json; created_at: string; updated_at: string };
-        Insert: { key: string; value: Json; id?: string };
-        Update: { key?: string; value?: Json };
-        Relationships: [];
-      };
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-    CompositeTypes: Record<string, never>;
-  };
 };

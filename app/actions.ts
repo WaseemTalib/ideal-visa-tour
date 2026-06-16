@@ -3,9 +3,11 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { adminDb, nowTimestamp } from "@/lib/firebase/admin";
-import { requireAdmin } from "@/lib/auth";
-import { inquirySchema, locationSchema, packageSchema, testimonialSchema } from "@/lib/validations";
+import { eq } from "drizzle-orm";
+import { requireDb, schema } from "@/lib/db";
+import { requireAdmin, SESSION_COOKIE } from "@/lib/auth";
+import { hashPassword } from "@/lib/auth/password";
+import { inquirySchema, locationSchema, packageSchema, registerSchema, testimonialSchema } from "@/lib/validations";
 import { itineraryFromText, listFromText, slugify } from "@/lib/utils";
 
 export type ActionResult = { error?: string; success?: string; redirectTo?: string };
@@ -20,6 +22,13 @@ export type InquiryFormValues = {
 
 export type InquiryActionResult = ActionResult & { values?: InquiryFormValues };
 
+export type RegisterFormValues = {
+  full_name: string;
+  email: string;
+};
+
+export type RegisterActionResult = ActionResult & { values?: RegisterFormValues };
+
 function emptyToNull(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
   return text || null;
@@ -32,9 +41,52 @@ function describeZodError(error: { issues: Array<{ message: string; path: Proper
   return `${label}: ${first.message}`;
 }
 
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export async function signOutAction() {
-  (await cookies()).delete("firebase_session");
+  (await cookies()).delete(SESSION_COOKIE);
   redirect("/login");
+}
+
+export async function registerUserAction(
+  _prev: RegisterActionResult | null,
+  formData: FormData,
+): Promise<RegisterActionResult> {
+  const submitted: RegisterFormValues = {
+    full_name: String(formData.get("full_name") ?? "").trim(),
+    email: String(formData.get("email") ?? "").trim().toLowerCase(),
+  };
+
+  const parsed = registerSchema.safeParse({
+    ...submitted,
+    password: String(formData.get("password") ?? ""),
+    confirm_password: String(formData.get("confirm_password") ?? ""),
+  });
+  if (!parsed.success) return { error: describeZodError(parsed.error), values: submitted };
+
+  try {
+    const db = requireDb();
+    const existing = await db
+      .select({ id: schema.profiles.id })
+      .from(schema.profiles)
+      .where(eq(schema.profiles.email, parsed.data.email))
+      .limit(1);
+    if (existing.length) {
+      return { error: "An account with this email already exists.", values: submitted };
+    }
+    await db.insert(schema.profiles).values({
+      email: parsed.data.email,
+      password_hash: await hashPassword(parsed.data.password),
+      full_name: parsed.data.full_name,
+      role: "user",
+    });
+  } catch (error) {
+    return { error: errorMessage(error, "Unable to create account."), values: submitted };
+  }
+
+  return { success: "Account created. You can now sign in." };
 }
 
 export async function createInquiryAction(
@@ -56,24 +108,21 @@ export async function createInquiryAction(
   });
   if (!parsed.success) return { error: describeZodError(parsed.error), values: submitted };
 
-  const db = adminDb();
-  if (!db) return { error: "Firebase Admin is not configured.", values: submitted };
-
   try {
-    await db.collection("inquiries").add({
-      ...parsed.data,
-      email: parsed.data.email || null,
-      subject: parsed.data.subject || null,
-      package_id: parsed.data.package_id || null,
-      status: "new",
-      created_at: nowTimestamp(),
-      updated_at: nowTimestamp(),
-    });
+    await requireDb()
+      .insert(schema.inquiries)
+      .values({
+        name: parsed.data.name,
+        email: parsed.data.email || null,
+        phone: parsed.data.phone,
+        subject: parsed.data.subject || null,
+        message: parsed.data.message,
+        package_id: parsed.data.package_id || null,
+        type: parsed.data.type,
+        status: "new",
+      });
   } catch (error) {
-    return {
-      error: error instanceof Error ? error.message : "Unable to send inquiry.",
-      values: submitted,
-    };
+    return { error: errorMessage(error, "Unable to send inquiry."), values: submitted };
   }
 
   revalidatePath("/dashboard/inquiries");
@@ -82,8 +131,6 @@ export async function createInquiryAction(
 
 export async function savePackageAction(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
-  const db = adminDb();
-  if (!db) return { error: "Firebase Admin is not configured." };
 
   const title = String(formData.get("title") ?? "").trim();
   const parsedResult = packageSchema.safeParse({
@@ -115,7 +162,7 @@ export async function savePackageAction(_prev: ActionResult | null, formData: Fo
     return { error: "End date must be on or after the start date." };
   }
 
-  const id = emptyToNull(formData.get("id"));
+  const id = emptyToNull(formData.get("id")) ?? parsed.slug;
   const payload = {
     title: parsed.title,
     slug: parsed.slug,
@@ -147,17 +194,20 @@ export async function savePackageAction(_prev: ActionResult | null, formData: Fo
     published: formData.get("published") === "on",
     seo_title: null,
     seo_description: null,
-    updated_at: nowTimestamp(),
   };
 
+  const editing = emptyToNull(formData.get("id"));
   try {
-    if (id) {
-      await db.collection("packages").doc(id).set(payload, { merge: true });
+    if (editing) {
+      await requireDb()
+        .update(schema.packages)
+        .set({ ...payload, updated_at: new Date() })
+        .where(eq(schema.packages.id, editing));
     } else {
-      await db.collection("packages").add({ ...payload, created_at: nowTimestamp() });
+      await requireDb().insert(schema.packages).values({ id, ...payload });
     }
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Unable to save package." };
+    return { error: errorMessage(error, "Unable to save package.") };
   }
 
   revalidatePath("/");
@@ -166,15 +216,14 @@ export async function savePackageAction(_prev: ActionResult | null, formData: Fo
   revalidatePath("/group-packages");
   revalidatePath("/dashboard/packages");
   revalidatePath("/dashboard/group-packages");
-  return { success: id ? "Package updated." : "Package created.", redirectTo: "/dashboard/packages" };
+  return { success: editing ? "Package updated." : "Package created.", redirectTo: "/dashboard/packages" };
 }
 
 export async function deletePackageAction(formData: FormData) {
   await requireAdmin();
-  const db = adminDb();
-  if (!db) return;
+  const id = String(formData.get("id"));
   try {
-    await db.collection("packages").doc(String(formData.get("id"))).delete();
+    await requireDb().delete(schema.packages).where(eq(schema.packages.id, id));
   } catch (error) {
     console.error(error);
     return;
@@ -185,8 +234,6 @@ export async function deletePackageAction(formData: FormData) {
 
 export async function saveLocationAction(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
-  const db = adminDb();
-  if (!db) return { error: "Firebase Admin is not configured." };
 
   const name = String(formData.get("name") ?? "").trim();
   const parsedResult = locationSchema.safeParse({
@@ -201,7 +248,7 @@ export async function saveLocationAction(_prev: ActionResult | null, formData: F
   if (!parsedResult.success) return { error: describeZodError(parsedResult.error) };
   const parsed = parsedResult.data;
 
-  const id = emptyToNull(formData.get("id"));
+  const editing = emptyToNull(formData.get("id"));
   const payload = {
     name: parsed.name,
     slug: parsed.slug,
@@ -210,27 +257,31 @@ export async function saveLocationAction(_prev: ActionResult | null, formData: F
     description: parsed.description || null,
     image_url: parsed.image_url || null,
     active: parsed.active,
-    updated_at: nowTimestamp(),
   };
 
   try {
-    if (id) await db.collection("locations").doc(id).set(payload, { merge: true });
-    else await db.collection("locations").add({ ...payload, created_at: nowTimestamp() });
+    if (editing) {
+      await requireDb()
+        .update(schema.locations)
+        .set({ ...payload, updated_at: new Date() })
+        .where(eq(schema.locations.id, editing));
+    } else {
+      await requireDb().insert(schema.locations).values({ id: parsed.slug, ...payload });
+    }
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Unable to save location." };
+    return { error: errorMessage(error, "Unable to save location.") };
   }
   revalidatePath("/");
   revalidatePath("/packages");
   revalidatePath("/dashboard/locations");
-  return { success: id ? "Location updated." : "Location added." };
+  return { success: editing ? "Location updated." : "Location added." };
 }
 
 export async function deleteLocationAction(formData: FormData) {
   await requireAdmin();
-  const db = adminDb();
-  if (!db) return;
+  const id = String(formData.get("id"));
   try {
-    await db.collection("locations").doc(String(formData.get("id"))).delete();
+    await requireDb().delete(schema.locations).where(eq(schema.locations.id, id));
   } catch (error) {
     console.error(error);
     return;
@@ -241,15 +292,14 @@ export async function deleteLocationAction(formData: FormData) {
 
 export async function updateInquiryStatusAction(formData: FormData) {
   await requireAdmin();
-  const db = adminDb();
-  if (!db) return;
   const status = String(formData.get("status"));
   if (!["new", "contacted", "confirmed", "rejected"].includes(status)) return;
+  const id = String(formData.get("id"));
   try {
-    await db
-      .collection("inquiries")
-      .doc(String(formData.get("id")))
-      .set({ status, updated_at: nowTimestamp() }, { merge: true });
+    await requireDb()
+      .update(schema.inquiries)
+      .set({ status: status as typeof schema.inquiryStatus.enumValues[number], updated_at: new Date() })
+      .where(eq(schema.inquiries.id, id));
   } catch (error) {
     console.error(error);
     return;
@@ -259,10 +309,9 @@ export async function updateInquiryStatusAction(formData: FormData) {
 
 export async function deleteInquiryAction(formData: FormData) {
   await requireAdmin();
-  const db = adminDb();
-  if (!db) return;
+  const id = String(formData.get("id"));
   try {
-    await db.collection("inquiries").doc(String(formData.get("id"))).delete();
+    await requireDb().delete(schema.inquiries).where(eq(schema.inquiries.id, id));
   } catch (error) {
     console.error(error);
     return;
@@ -272,8 +321,6 @@ export async function deleteInquiryAction(formData: FormData) {
 
 export async function saveTestimonialAction(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
-  const db = adminDb();
-  if (!db) return { error: "Firebase Admin is not configured." };
 
   const parsedResult = testimonialSchema.safeParse({
     name: formData.get("name"),
@@ -285,33 +332,37 @@ export async function saveTestimonialAction(_prev: ActionResult | null, formData
   if (!parsedResult.success) return { error: describeZodError(parsedResult.error) };
   const parsed = parsedResult.data;
 
-  const id = emptyToNull(formData.get("id"));
+  const editing = emptyToNull(formData.get("id"));
   const payload = {
     name: parsed.name,
     review: parsed.review,
     rating: parsed.rating,
     image_url: parsed.image_url || null,
     active: parsed.active,
-    updated_at: nowTimestamp(),
   };
 
   try {
-    if (id) await db.collection("testimonials").doc(id).set(payload, { merge: true });
-    else await db.collection("testimonials").add({ ...payload, created_at: nowTimestamp() });
+    if (editing) {
+      await requireDb()
+        .update(schema.testimonials)
+        .set({ ...payload, updated_at: new Date() })
+        .where(eq(schema.testimonials.id, editing));
+    } else {
+      await requireDb().insert(schema.testimonials).values({ id: slugify(parsed.name), ...payload });
+    }
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Unable to save testimonial." };
+    return { error: errorMessage(error, "Unable to save testimonial.") };
   }
   revalidatePath("/");
   revalidatePath("/dashboard/testimonials");
-  return { success: id ? "Testimonial updated." : "Testimonial added." };
+  return { success: editing ? "Testimonial updated." : "Testimonial added." };
 }
 
 export async function deleteTestimonialAction(formData: FormData) {
   await requireAdmin();
-  const db = adminDb();
-  if (!db) return;
+  const id = String(formData.get("id"));
   try {
-    await db.collection("testimonials").doc(String(formData.get("id"))).delete();
+    await requireDb().delete(schema.testimonials).where(eq(schema.testimonials.id, id));
   } catch (error) {
     console.error(error);
     return;
@@ -322,10 +373,8 @@ export async function deleteTestimonialAction(formData: FormData) {
 
 export async function saveSiteSettingsAction(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
-  const db = adminDb();
-  if (!db) return { error: "Firebase Admin is not configured." };
 
-  const settings = [
+  const keys = [
     "hero_title",
     "hero_subtitle",
     "hero_image",
@@ -342,17 +391,18 @@ export async function saveSiteSettingsAction(_prev: ActionResult | null, formDat
   ];
 
   try {
-    const batch = db.batch();
-    for (const key of settings) {
-      batch.set(
-        db.collection("siteSettings").doc(key),
-        { value: String(formData.get(key) ?? "").trim(), updated_at: nowTimestamp() },
-        { merge: true },
-      );
+    for (const key of keys) {
+      const value = String(formData.get(key) ?? "").trim();
+      await requireDb()
+        .insert(schema.siteSettings)
+        .values({ key, value })
+        .onConflictDoUpdate({
+          target: schema.siteSettings.key,
+          set: { value, updated_at: new Date() },
+        });
     }
-    await batch.commit();
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Unable to save settings." };
+    return { error: errorMessage(error, "Unable to save settings.") };
   }
 
   revalidatePath("/");

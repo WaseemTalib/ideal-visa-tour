@@ -1,11 +1,13 @@
-import { Suspense } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PlaneTakeoff } from "lucide-react";
-import { LoginForm } from "@/components/forms/login-form";
+import { RegisterForm } from "@/components/forms/register-form";
 
-export default function LoginPage() {
+export const metadata: Metadata = { title: "Create account" };
+
+export default function RegisterPage() {
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-slate-100 to-teal-50/60 px-4">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-slate-100 to-teal-50/60 px-4 py-12">
       <div className="pointer-events-none absolute -left-32 top-1/4 size-80 rounded-full bg-teal-500/15 blur-3xl" />
       <div className="pointer-events-none absolute -right-32 bottom-1/4 size-80 rounded-full bg-coral-500/15 blur-3xl" />
       <div className="relative w-full max-w-md rounded-2xl border border-slate-200/70 bg-white/95 p-8 shadow-[var(--shadow-soft)] backdrop-blur animate-fade-up">
@@ -17,19 +19,11 @@ export default function LoginPage() {
             Ideal <span className="text-gradient-teal">Visa Tour</span>
           </span>
         </Link>
-        <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Admin login</h1>
+        <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Create an account</h1>
         <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          Sign in with an admin account to manage packages, locations, and inquiries.
+          Register to track inquiries and bookings. Admin access stays separate.
         </p>
-        <Suspense>
-          <LoginForm />
-        </Suspense>
-        <p className="mt-6 text-center text-sm text-slate-600">
-          Don&apos;t have an account?{" "}
-          <Link href="/registeruser" className="font-semibold text-teal-700 hover:underline">
-            Create one
-          </Link>
-        </p>
+        <RegisterForm />
       </div>
     </main>
   );

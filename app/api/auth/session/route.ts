@@ -1,29 +1,59 @@
 import { NextResponse } from "next/server";
-import { adminAuth, adminDb } from "@/lib/firebase/admin";
-
-const expiresIn = 1000 * 60 * 60 * 24 * 5;
+import { eq } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+import { verifyPassword } from "@/lib/auth/password";
+import { signSession, SESSION_MAX_AGE_SECONDS } from "@/lib/auth/jwt";
+import { SESSION_COOKIE } from "@/lib/auth";
 
 export async function POST(request: Request) {
-  const auth = adminAuth();
-  const db = adminDb();
-  if (!auth || !db) return NextResponse.json({ error: "Firebase Admin is not configured." }, { status: 500 });
+  let body: { email?: string; password?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+  const email = String(body.email ?? "").trim().toLowerCase();
+  const password = String(body.password ?? "");
+  if (!email || !password) {
+    return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
+  }
 
-  const { idToken } = await request.json();
-  if (!idToken) return NextResponse.json({ error: "Missing Firebase ID token." }, { status: 400 });
+  const conn = db();
+  if (!conn) return NextResponse.json({ error: "Database is not configured." }, { status: 500 });
 
-  const decoded = await auth.verifyIdToken(idToken);
-  const profile = await db.collection("profiles").doc(decoded.uid).get();
-  if (profile.data()?.role !== "admin") {
+  const [profile] = await conn
+    .select()
+    .from(schema.profiles)
+    .where(eq(schema.profiles.email, email))
+    .limit(1);
+  if (!profile) {
+    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+  }
+
+  const ok = await verifyPassword(password, profile.password_hash);
+  if (!ok) {
+    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+  }
+  if (profile.role !== "admin") {
     return NextResponse.json({ error: "Only admin users can access the dashboard." }, { status: 403 });
   }
 
-  const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
+  let token: string;
+  try {
+    token = await signSession({ sub: profile.id, email: profile.email, role: profile.role });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unable to sign session." },
+      { status: 500 },
+    );
+  }
+
   const response = NextResponse.json({ ok: true });
-  response.cookies.set("firebase_session", sessionCookie, {
+  response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: expiresIn / 1000,
+    maxAge: SESSION_MAX_AGE_SECONDS,
     path: "/",
   });
   return response;
