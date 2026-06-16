@@ -45,7 +45,7 @@ export default async function DashboardUsersPage() {
               <UserActionButton
                 id={user.id}
                 action={promoteUserAction}
-                label="Promote To Admin"
+                label="Assign As Admin"
                 pendingLabel="Promoting…"
                 variant="default"
                 icon={<ShieldCheck size={14} />}
