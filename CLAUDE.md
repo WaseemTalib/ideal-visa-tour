@@ -6,7 +6,7 @@ International tour & visa booking site: a public marketing/booking surface plus 
 
 ## Stack
 
-- **Next.js 16.2.7** (App Router, Turbopack) — has breaking changes vs training data, see AGENTS.md.
+- **Next.js 15.5.19** (App Router, Webpack — Turbopack intentionally disabled).
 - **React 19.2** — use `useActionState`, `useFormStatus`, `useTransition`.
 - **Tailwind CSS 4** with `@theme {}` tokens in `app/globals.css` (no `tailwind.config.js`).
 - **Postgres + Drizzle ORM** — primary data store. Driver is `pg` (node-postgres) Pool wrapped by `drizzle-orm/node-postgres`. Works against local Postgres or any hosted provider (Neon/Supabase/Railway). Schema in `lib/db/schema.ts`, client in `lib/db/index.ts`, migrations in `drizzle/`. TLS toggles automatically based on `sslmode=require` in the URL.
