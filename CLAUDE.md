@@ -11,7 +11,7 @@ International tour & visa booking site: a public marketing/booking surface plus 
 - **Tailwind CSS 4** with `@theme {}` tokens in `app/globals.css` (no `tailwind.config.js`).
 - **Postgres + Drizzle ORM** — primary data store. Driver is `pg` (node-postgres) Pool wrapped by `drizzle-orm/node-postgres`. Works against local Postgres or any hosted provider (Neon/Supabase/Railway). Schema in `lib/db/schema.ts`, client in `lib/db/index.ts`, migrations in `drizzle/`. TLS toggles automatically based on `sslmode=require` in the URL.
 - **Custom JWT auth** — email/password login against `profiles` table, bcrypt hash, `jose`-signed HS256 JWT in HTTP-only `auth_session` cookie (7-day expiry). Helpers in `lib/auth/jwt.ts` + `lib/auth/password.ts`. No Firebase Auth, no NextAuth.
-- **Firebase Storage** (Admin SDK only) — image uploads. Firestore and Firebase Auth are **not used**.
+- **Local file storage** — `/api/upload` writes images under `public/storage/<bucket>/`. Buckets: `package-images`, `location-images`, `testimonial-images`, `site-content`. URLs returned as `/storage/<bucket>/<file>`. No Firebase, no external storage. **Requires a writable filesystem on deploy** — Vercel serverless won't work, use a VPS / Render / Railway / `server.js` host.
 - **Zod 4** for validation, **sonner** for toasts, **lucide-react** for icons.
 - Deploy: **Vercel** hosts the Next app; Neon hosts Postgres; Firebase hosts Auth + Storage. Vercel root directory must be `.`, not `app/`.
 
@@ -35,7 +35,6 @@ lib/
   db/
     schema.ts           # All Drizzle table defs + enums + inferred types
     index.ts            # db() lazy singleton — Neon HTTP driver
-  firebase/admin.ts     # adminStorage() only. No Auth, no Firestore.
   data.ts               # All Postgres reads via Drizzle (joins for locations)
   auth.ts               # requireAdmin() — verifies JWT cookie + queries `profiles`
   auth/

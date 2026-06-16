@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // CommonJS Node entrypoint — not TS-lint-able.
+    "server.js",
   ]),
 ]);
 

@@ -15,6 +15,7 @@ import {
   PlaneTakeoff,
   Settings,
   Star,
+  UserCheck,
   Users,
 } from "lucide-react";
 import { signOutAction } from "@/app/actions";
@@ -27,6 +28,7 @@ const links = [
   { label: "Group Tours", href: "/dashboard/group-packages", Icon: Users },
   { label: "Locations", href: "/dashboard/locations", Icon: MapPinned },
   { label: "Inquiries", href: "/dashboard/inquiries", Icon: Inbox },
+  { label: "Users", href: "/dashboard/users", Icon: UserCheck },
   { label: "Content", href: "/dashboard/content", Icon: Settings },
   { label: "Testimonials", href: "/dashboard/testimonials", Icon: Star },
 ];

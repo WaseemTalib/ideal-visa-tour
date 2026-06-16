@@ -1,6 +1,6 @@
 import { aliasedTable, and, desc, eq, gte, lte, or, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
-import type { Inquiry, Location, SiteSettings, Testimonial, TravelPackage } from "@/types/database.types";
+import type { Inquiry, Location, Profile, SiteSettings, Testimonial, TravelPackage } from "@/types/database.types";
 
 export type PackageSearch = {
   from?: string;
@@ -199,6 +199,23 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   if (!conn) return {};
   const rows = await conn.select().from(schema.siteSettings);
   return Object.fromEntries(rows.map((row) => [row.key, row.value])) as SiteSettings;
+}
+
+export async function getProfiles(): Promise<Profile[]> {
+  const conn = db();
+  if (!conn) return [];
+  const rows = await conn
+    .select()
+    .from(schema.profiles)
+    .orderBy(desc(schema.profiles.created_at));
+  return rows.map((row) => ({
+    id: row.id,
+    email: row.email,
+    full_name: row.full_name,
+    role: row.role,
+    created_at: toIso(row.created_at),
+    updated_at: toIso(row.updated_at),
+  }));
 }
 
 export async function getInquiries(): Promise<Inquiry[]> {

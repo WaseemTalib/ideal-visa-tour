@@ -79,6 +79,7 @@ export type SiteSettings = Record<string, string>;
 
 export type Profile = {
   id: string;
+  email: string;
   full_name: string | null;
   role: "user" | "admin";
   created_at: string;

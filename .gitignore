@@ -54,8 +54,8 @@ Thumbs.db
 .claude/
 skills-lock.json
 
-# Firebase local cache and debug
-.firebase/
-firebase-debug.log
-firestore-debug.log
-ui-debug.log
+# Uploaded user content — don't commit binaries, but keep the folder structure
+/public/storage/**/*
+!/public/storage/
+!/public/storage/*/
+!/public/storage/**/.gitkeep

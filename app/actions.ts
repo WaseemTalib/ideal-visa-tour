@@ -371,6 +371,56 @@ export async function deleteTestimonialAction(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function promoteUserAction(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  try {
+    await requireDb()
+      .update(schema.profiles)
+      .set({ role: "admin", updated_at: new Date() })
+      .where(eq(schema.profiles.id, id));
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+  revalidatePath("/dashboard/users");
+}
+
+export async function demoteUserAction(formData: FormData) {
+  const { profile } = await requireAdmin();
+  const id = String(formData.get("id"));
+  if (id === profile.id) {
+    console.warn("Refusing to demote the currently signed-in admin.");
+    return;
+  }
+  try {
+    await requireDb()
+      .update(schema.profiles)
+      .set({ role: "user", updated_at: new Date() })
+      .where(eq(schema.profiles.id, id));
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+  revalidatePath("/dashboard/users");
+}
+
+export async function deleteUserAction(formData: FormData) {
+  const { profile } = await requireAdmin();
+  const id = String(formData.get("id"));
+  if (id === profile.id) {
+    console.warn("Refusing to delete the currently signed-in admin.");
+    return;
+  }
+  try {
+    await requireDb().delete(schema.profiles).where(eq(schema.profiles.id, id));
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+  revalidatePath("/dashboard/users");
+}
+
 export async function saveSiteSettingsAction(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
 
