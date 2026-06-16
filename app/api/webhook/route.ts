@@ -24,12 +24,18 @@ export async function POST(req: NextRequest) {
   if (data.ref !== `refs/heads/${BRANCH}`) {
     return NextResponse.json({ message: `Not ${BRANCH} branch, skipping` })
   }
-
+  let logs;
   // Run deploy.sh from inside the project directory
   exec(`${APP_DIR}/deploy.sh ${APP_DIR}`, (error, stdout, stderr) => {
-    if (error) console.error('Deploy error:', stderr)
-    else console.log('Deploy output:', stdout)
+    if (error) {
+      console.error('Deploy error:', stderr);
+      logs = stderr
+    } else {
+      console.log('Deploy output:', stdout)
+      logs = stdout
+    }
+
   })
 
-  return NextResponse.json({ message: 'Deploy triggered', app: APP_DIR })
+  return NextResponse.json({ message: 'Deploy triggered', app: APP_DIR, logs: logs })
 }
