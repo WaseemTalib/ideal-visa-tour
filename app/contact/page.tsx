@@ -7,6 +7,7 @@ import { getSiteSettings } from "@/lib/data";
 import { extractMapSrc } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Contact" };
+export const dynamic = "force-dynamic";
 
 type CardKey = "contact_phone" | "whatsapp" | "email" | "address";
 

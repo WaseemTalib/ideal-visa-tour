@@ -8,6 +8,7 @@ import { SearchForm } from "@/components/public/search-form";
 import { getLocations, getPackages, getSiteSettings } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Travel Packages" };
+export const dynamic = "force-dynamic";
 
 const STANDARD_INCLUSIONS = [
   { Icon: FileCheck2, title: "Visa support", text: "Documentation, embassy filing, and follow-up." },

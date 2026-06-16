@@ -7,6 +7,7 @@ import { PackageCard } from "@/components/public/package-card";
 import { getPackages, getSiteSettings } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Group Packages" };
+export const dynamic = "force-dynamic";
 
 const STEPS = [
   {

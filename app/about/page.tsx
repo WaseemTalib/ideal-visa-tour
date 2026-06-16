@@ -5,6 +5,7 @@ import { Navbar } from "@/components/public/navbar";
 import { getPackages, getSiteSettings } from "@/lib/data";
 
 export const metadata: Metadata = { title: "About" };
+export const dynamic = "force-dynamic";
 
 const STEPS = [
   {

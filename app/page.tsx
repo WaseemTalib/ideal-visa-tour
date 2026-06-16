@@ -7,6 +7,8 @@ import { PackageCard } from "@/components/public/package-card";
 import { SearchForm } from "@/components/public/search-form";
 import { getLocations, getPackages, getSiteSettings, getTestimonials } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const [locations, packages, groupPackages, testimonials, settings] = await Promise.all([
     getLocations(),

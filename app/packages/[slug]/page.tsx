@@ -10,6 +10,8 @@ import { PackageCard } from "@/components/public/package-card";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { getPackageBySlug, getPackages, getSiteSettings } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const pkg = await getPackageBySlug(slug);
