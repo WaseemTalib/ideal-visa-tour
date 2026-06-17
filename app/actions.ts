@@ -2,12 +2,18 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { requireDb, schema } from "@/lib/db";
 import { requireAdmin, SESSION_COOKIE } from "@/lib/auth";
-import { hashPassword } from "@/lib/auth/password";
-import { inquirySchema, locationSchema, packageSchema, registerSchema, testimonialSchema } from "@/lib/validations";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import {
+  changePasswordSchema,
+  inquirySchema,
+  locationSchema,
+  packageSchema,
+  registerSchema,
+  testimonialSchema,
+} from "@/lib/validations";
 import { itineraryFromText, listFromText, slugify } from "@/lib/utils";
 
 export type ActionResult = { error?: string; success?: string; redirectTo?: string };
@@ -47,7 +53,6 @@ function errorMessage(error: unknown, fallback: string) {
 
 export async function signOutAction() {
   (await cookies()).delete(SESSION_COOKIE);
-  redirect("/login");
 }
 
 export async function registerUserAction(
@@ -86,7 +91,7 @@ export async function registerUserAction(
     return { error: errorMessage(error, "Unable to create account."), values: submitted };
   }
 
-  return { success: "Account created. You can now sign in." };
+  return { success: "Contact Admin for approval" };
 }
 
 export async function createInquiryAction(
@@ -142,6 +147,7 @@ export async function savePackageAction(_prev: ActionResult | null, formData: Fo
     from_location_id: formData.get("from_location_id"),
     to_location_id: formData.get("to_location_id"),
     price: formData.get("price"),
+    agent_price: formData.get("agent_price"),
     discount_price: formData.get("discount_price"),
     duration_days: formData.get("duration_days"),
     duration_nights: formData.get("duration_nights"),
@@ -172,6 +178,7 @@ export async function savePackageAction(_prev: ActionResult | null, formData: Fo
     from_location_id: parsed.from_location_id,
     to_location_id: parsed.to_location_id,
     price: parsed.price,
+    agent_price: parsed.agent_price,
     discount_price: parsed.discount_price,
     duration_days: parsed.duration_days,
     duration_nights: parsed.duration_nights,
@@ -371,13 +378,14 @@ export async function deleteTestimonialAction(formData: FormData) {
   revalidatePath("/");
 }
 
-export async function promoteUserAction(formData: FormData) {
+export async function approveUserAction(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get("id"));
+  const now = new Date();
   try {
     await requireDb()
       .update(schema.profiles)
-      .set({ role: "admin", updated_at: new Date() })
+      .set({ status: true, approved_at: now, updated_at: now })
       .where(eq(schema.profiles.id, id));
   } catch (error) {
     console.error(error);
@@ -386,23 +394,75 @@ export async function promoteUserAction(formData: FormData) {
   revalidatePath("/dashboard/users");
 }
 
-export async function demoteUserAction(formData: FormData) {
-  const { profile } = await requireAdmin();
+export async function enableUserAction(formData: FormData) {
+  await requireAdmin();
   const id = String(formData.get("id"));
-  if (id === profile.id) {
-    console.warn("Refusing to demote the currently signed-in admin.");
-    return;
-  }
   try {
     await requireDb()
       .update(schema.profiles)
-      .set({ role: "user", updated_at: new Date() })
+      .set({ status: true, updated_at: new Date() })
       .where(eq(schema.profiles.id, id));
   } catch (error) {
     console.error(error);
     return;
   }
   revalidatePath("/dashboard/users");
+}
+
+export async function disableUserAction(formData: FormData) {
+  const { profile } = await requireAdmin();
+  const id = String(formData.get("id"));
+  if (id === profile.id) {
+    console.warn("Refusing to disable the currently signed-in admin.");
+    return;
+  }
+  try {
+    await requireDb()
+      .update(schema.profiles)
+      .set({ status: false, updated_at: new Date() })
+      .where(eq(schema.profiles.id, id));
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+  revalidatePath("/dashboard/users");
+}
+
+export async function changePasswordAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const { profile } = await requireAdmin();
+
+  const parsed = changePasswordSchema.safeParse({
+    current_password: formData.get("current_password"),
+    new_password: formData.get("new_password"),
+    confirm_password: formData.get("confirm_password"),
+  });
+  if (!parsed.success) return { error: describeZodError(parsed.error) };
+
+  try {
+    const db = requireDb();
+    const [row] = await db
+      .select({ password_hash: schema.profiles.password_hash })
+      .from(schema.profiles)
+      .where(eq(schema.profiles.id, profile.id))
+      .limit(1);
+    if (!row) return { error: "Account not found." };
+
+    const ok = await verifyPassword(parsed.data.current_password, row.password_hash);
+    if (!ok) return { error: "Current password is incorrect." };
+
+    const newHash = await hashPassword(parsed.data.new_password);
+    await db
+      .update(schema.profiles)
+      .set({ password_hash: newHash, updated_at: new Date() })
+      .where(eq(schema.profiles.id, profile.id));
+  } catch (error) {
+    return { error: errorMessage(error, "Unable to change password.") };
+  }
+
+  return { success: "Password updated." };
 }
 
 export async function deleteUserAction(formData: FormData) {

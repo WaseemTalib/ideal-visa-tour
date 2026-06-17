@@ -52,6 +52,7 @@ export const packageSchema = z.object({
   from_location_id: z.string().trim().min(1, "From location is required"),
   to_location_id: z.string().trim().min(1, "Destination is required"),
   price: z.coerce.number().min(1, "Price is required"),
+  agent_price: z.coerce.number().min(1, "Agent price is required"),
   discount_price: optionalPositiveNumber,
   duration_days: z.coerce.number().int().min(1, "Duration days must be at least 1"),
   duration_nights: z.coerce.number().int().min(0, "Nights cannot be negative"),
@@ -84,6 +85,17 @@ export const registerSchema = z
     confirm_password: z.string(),
   })
   .refine((data) => data.password === data.confirm_password, {
+    message: "Passwords do not match",
+    path: ["confirm_password"],
+  });
+
+export const changePasswordSchema = z
+  .object({
+    current_password: z.string().min(1, "Current password is required"),
+    new_password: z.string().min(8, "New password must be at least 8 characters"),
+    confirm_password: z.string(),
+  })
+  .refine((data) => data.new_password === data.confirm_password, {
     message: "Passwords do not match",
     path: ["confirm_password"],
   });

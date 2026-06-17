@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
-import { toast } from "sonner";
 import { registerUserAction, type RegisterActionResult, type RegisterFormValues } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { toast } from "@/lib/toast";
 
 const EMPTY: RegisterFormValues = { full_name: "", email: "" };
 
@@ -15,9 +16,11 @@ export function RegisterForm() {
     registerUserAction,
     null,
   );
+  const lastHandledRef = useRef<RegisterActionResult | null>(null);
 
   useEffect(() => {
-    if (!state) return;
+    if (!state || state === lastHandledRef.current) return;
+    lastHandledRef.current = state;
     if (state.success) toast.success(state.success);
     else if (state.error) toast.error(state.error);
   }, [state]);
@@ -37,12 +40,12 @@ export function RegisterForm() {
       </div>
       <div>
         <Label required>Password</Label>
-        <Input name="password" type="password" autoComplete="new-password" minLength={8} required />
+        <PasswordInput name="password" autoComplete="new-password" minLength={8} required />
         <p className="mt-1 text-xs text-slate-500">At least 8 characters.</p>
       </div>
       <div>
         <Label required>Confirm password</Label>
-        <Input name="confirm_password" type="password" autoComplete="new-password" minLength={8} required />
+        <PasswordInput name="confirm_password" autoComplete="new-password" minLength={8} required />
       </div>
       <Button disabled={pending} className="gap-2" type="submit">
         <UserPlus size={16} />

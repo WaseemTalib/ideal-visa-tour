@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
+import { getCurrentUser } from "@/lib/auth";
 import type { SiteSettings } from "@/types/database.types";
 
 type IconProps = { size?: number };
@@ -30,10 +31,11 @@ function TiktokIcon({ size = 16 }: IconProps) {
   );
 }
 
-export function Footer({ settings }: { settings: SiteSettings }) {
+export async function Footer({ settings }: { settings: SiteSettings }) {
   const facebook = String(settings.facebook ?? "").trim();
   const instagram = String(settings.instagram ?? "").trim();
   const tiktok = String(settings.tiktok ?? "").trim();
+  const session = await getCurrentUser();
 
   return (
     <footer className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
@@ -74,7 +76,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             <Link href="/group-packages">Group packages</Link>
             <Link href="/about">About</Link>
             <Link href="/contact">Contact</Link>
-            <Link href="/login">Admin login</Link>
+            {session ? null : <Link href="/login">Login</Link>}
           </div>
         </div>
         <div>

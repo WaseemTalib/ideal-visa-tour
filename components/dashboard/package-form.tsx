@@ -86,10 +86,21 @@ export function PackageForm({ pkg, locations }: { pkg?: TravelPackage | null; lo
             </Select>
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <div>
             <Label required>Price (PKR)</Label>
             <Input name="price" type="number" min="1" step="1" defaultValue={pkg?.price ?? ""} required />
+          </div>
+          <div>
+            <Label required>Agent price (PKR)</Label>
+            <Input
+              name="agent_price"
+              type="number"
+              min="1"
+              step="1"
+              defaultValue={pkg?.agent_price ?? ""}
+              required
+            />
           </div>
           <div>
             <Label>Discount price (optional)</Label>

@@ -6,17 +6,20 @@ import { Navbar } from "@/components/public/navbar";
 import { PackageCard } from "@/components/public/package-card";
 import { SearchForm } from "@/components/public/search-form";
 import { getLocations, getPackages, getSiteSettings, getTestimonials } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [locations, packages, groupPackages, testimonials, settings] = await Promise.all([
+  const [locations, packages, groupPackages, testimonials, settings, session] = await Promise.all([
     getLocations(),
     getPackages({ featured: "true" }),
     getPackages({ type: "group" }),
     getTestimonials(),
     getSiteSettings(),
+    getCurrentUser(),
   ]);
+  const showAgentPrice = !!session;
   const featured = packages.slice(0, 3);
   const groups = groupPackages.slice(0, 3);
 
@@ -78,7 +81,7 @@ export default async function HomePage() {
           </div>
           {featured.length ? (
             <div className="mt-10 grid gap-6 md:grid-cols-3">
-              {featured.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} />)}
+              {featured.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} showAgentPrice={showAgentPrice} />)}
             </div>
           ) : (
             <EmptyState text="No featured packages yet. Add packages from the dashboard." />
@@ -101,7 +104,7 @@ export default async function HomePage() {
               </Link>
             </div>
             {groups.length ? (
-              <div className="mt-10 grid gap-6 md:grid-cols-3">{groups.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} />)}</div>
+              <div className="mt-10 grid gap-6 md:grid-cols-3">{groups.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} showAgentPrice={showAgentPrice} />)}</div>
             ) : (
               <EmptyState text="No group packages are published yet." />
             )}

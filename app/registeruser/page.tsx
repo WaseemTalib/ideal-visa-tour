@@ -20,9 +20,6 @@ export default function RegisterPage() {
           </span>
         </Link>
         <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Create an account</h1>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          Register to track inquiries and bookings. Admin access stays separate.
-        </p>
         <RegisterForm />
       </div>
     </main>

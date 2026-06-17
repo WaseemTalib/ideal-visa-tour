@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { useFormStatus } from "react-dom";
 import {
   BarChart3,
   ImageUp,
   Inbox,
+  KeyRound,
   Loader2,
-  LogOut,
   MapPinned,
   Package,
   PlaneTakeoff,
@@ -18,8 +17,7 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
-import { signOutAction } from "@/app/actions";
-import { Button } from "@/components/ui/button";
+import { LogoutButton } from "@/components/dashboard/logout-button";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -31,6 +29,7 @@ const links = [
   { label: "Users", href: "/dashboard/users", Icon: UserCheck },
   { label: "Content", href: "/dashboard/content", Icon: Settings },
   { label: "Testimonials", href: "/dashboard/testimonials", Icon: Star },
+  { label: "Account", href: "/dashboard/account", Icon: KeyRound },
 ];
 
 function SidebarLink({
@@ -106,16 +105,6 @@ function NewPackageLink() {
   );
 }
 
-function SignOutButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button variant="outline" className="w-full gap-2" disabled={pending}>
-      {pending ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
-      {pending ? "Signing out…" : "Sign out"}
-    </Button>
-  );
-}
-
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
@@ -142,9 +131,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           ))}
           <NewPackageLink />
         </nav>
-        <form action={signOutAction} className="absolute bottom-5 left-5 right-5">
-          <SignOutButton />
-        </form>
+        <div className="absolute bottom-5 left-5 right-5">
+          <LogoutButton className="h-11 w-full justify-center rounded-md border border-slate-300 bg-white text-sm font-semibold text-slate-900 hover:bg-slate-50">
+            Sign out
+          </LogoutButton>
+        </div>
       </aside>
       <main className="lg:pl-64">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 animate-fade-in">{children}</div>

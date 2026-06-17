@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { PlaneTakeoff } from "lucide-react";
+import { LogoutButton } from "@/components/dashboard/logout-button";
+import { getCurrentUser } from "@/lib/auth";
 
 const links = [
   ["Packages", "/packages"],
@@ -8,7 +10,9 @@ const links = [
   ["Contact", "/contact"],
 ];
 
-export function Navbar() {
+export async function Navbar() {
+  const session = await getCurrentUser();
+
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -31,12 +35,19 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
-        <Link
-          className="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-coral-500 to-coral-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-coral-500/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-coral-500/40"
-          href="/contact"
-        >
-          Plan a Trip
-        </Link>
+        <div className="flex items-center gap-2">
+          {session ? (
+            <LogoutButton className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50">
+              <span className="hidden sm:inline">Logout</span>
+            </LogoutButton>
+          ) : null}
+          <Link
+            className="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-coral-500 to-coral-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-coral-500/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-coral-500/40"
+            href="/contact"
+          >
+            Plan a Trip
+          </Link>
+        </div>
       </div>
     </header>
   );

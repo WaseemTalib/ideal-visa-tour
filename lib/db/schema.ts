@@ -44,6 +44,7 @@ export const packages = pgTable("packages", {
   from_location_id: text("from_location_id").references(() => locations.id, { onDelete: "set null" }),
   to_location_id: text("to_location_id").references(() => locations.id, { onDelete: "set null" }),
   price: integer("price").notNull(),
+  agent_price: integer("agent_price"),
   discount_price: integer("discount_price"),
   duration_days: integer("duration_days").notNull(),
   duration_nights: integer("duration_nights").notNull(),
@@ -103,6 +104,8 @@ export const profiles = pgTable("profiles", {
   password_hash: text("password_hash").notNull(),
   full_name: text("full_name"),
   role: profileRole("role").notNull().default("user"),
+  status: boolean("status").notNull().default(false),
+  approved_at: timestamp("approved_at", { withTimezone: true }),
   ...timestamps,
 });
 

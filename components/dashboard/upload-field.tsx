@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Loader2, Upload } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { toast } from "@/lib/toast";
 
 export function UploadField({
   name,
@@ -34,8 +34,8 @@ export function UploadField({
       if (!response.ok || !data.url) throw new Error(data.error || "Upload failed");
       setUrl(data.url);
       toast.success("Image uploaded");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Upload failed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setBusy(false);
     }

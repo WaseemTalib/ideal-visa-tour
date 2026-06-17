@@ -3,6 +3,7 @@
 import { useFormStatus } from "react-dom";
 import { updateInquiryStatusAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/lib/toast";
 
 const STATUSES = ["new", "contacted", "confirmed", "rejected"] as const;
 type Status = (typeof STATUSES)[number];
@@ -18,7 +19,11 @@ function PendingUpdate() {
 
 export function InquiryStatusForm({ id, status }: { id: string; status: Status }) {
   return (
-    <form action={updateInquiryStatusAction} className="flex gap-2">
+    <form
+      action={updateInquiryStatusAction}
+      className="flex gap-2"
+      onSubmit={() => toast.success("Inquiry status updated")}
+    >
       <input type="hidden" name="id" value={id} />
       <select
         name="status"

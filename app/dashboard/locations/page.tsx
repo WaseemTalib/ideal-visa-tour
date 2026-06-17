@@ -22,7 +22,7 @@ export default async function LocationsPage() {
                 {[location.city, location.country].filter(Boolean).join(", ") || "—"} · {location.active ? "Active" : "Inactive"}
               </p>
             </div>
-            <DeleteButton id={location.id} action={deleteLocationAction} confirm={`Delete location "${location.name}"?`} />
+            <DeleteButton id={location.id} action={deleteLocationAction} confirm="Are you sure you want to delete this location?" successMessage="Location deleted" />
           </div>
         ))}
       </div>

@@ -2,9 +2,10 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function LoginForm() {
   const router = useRouter();
@@ -25,11 +26,12 @@ export function LoginForm() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Login failed.");
-      router.push("/dashboard");
+      toast.success("Signed in");
+      const destination = data.role === "admin" ? "/dashboard" : "/";
+      router.push(destination);
       router.refresh();
-      toast.success("Signed in. Redirecting…");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Login failed.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Login failed.");
     } finally {
       setPending(false);
     }
@@ -43,7 +45,7 @@ export function LoginForm() {
       </div>
       <div>
         <Label required>Password</Label>
-        <Input name="password" type="password" autoComplete="current-password" required />
+        <PasswordInput name="password" autoComplete="current-password" required />
       </div>
       <Button disabled={pending}>{pending ? "Signing in…" : "Sign in"}</Button>
     </form>

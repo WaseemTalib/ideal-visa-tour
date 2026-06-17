@@ -6,6 +6,7 @@ import { Footer } from "@/components/public/footer";
 import { Navbar } from "@/components/public/navbar";
 import { SearchForm } from "@/components/public/search-form";
 import { getLocations, getPackages, getSiteSettings } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "Travel Packages" };
 export const dynamic = "force-dynamic";
@@ -19,7 +20,13 @@ const STANDARD_INCLUSIONS = [
 
 export default async function PackagesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
-  const [locations, packages, settings] = await Promise.all([getLocations(), getPackages(params), getSiteSettings()]);
+  const [locations, packages, settings, session] = await Promise.all([
+    getLocations(),
+    getPackages(params),
+    getSiteSettings(),
+    getCurrentUser(),
+  ]);
+  const showAgentPrice = !!session;
 
   const popularDestinations = locations
     .filter((loc) => loc.slug !== "lahore")
@@ -96,7 +103,7 @@ export default async function PackagesPage({ searchParams }: { searchParams: Pro
         ) : null}
 
         {packages.length ? (
-          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{packages.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} />)}</div>
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{packages.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} showAgentPrice={showAgentPrice} />)}</div>
         ) : (
           <div className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-12 text-center text-slate-600">
             No matching packages found. Try widening your filters.

@@ -5,6 +5,7 @@ import { Navbar } from "@/components/public/navbar";
 import { Footer } from "@/components/public/footer";
 import { PackageCard } from "@/components/public/package-card";
 import { getPackages, getSiteSettings } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "Group Packages" };
 export const dynamic = "force-dynamic";
@@ -39,7 +40,12 @@ const INCLUDED = [
 ];
 
 export default async function GroupPackagesPage() {
-  const [packages, settings] = await Promise.all([getPackages({ type: "group" }), getSiteSettings()]);
+  const [packages, settings, session] = await Promise.all([
+    getPackages({ type: "group" }),
+    getSiteSettings(),
+    getCurrentUser(),
+  ]);
+  const showAgentPrice = !!session;
   return (
     <>
       <Navbar />
@@ -56,7 +62,7 @@ export default async function GroupPackagesPage() {
           </div>
           {packages.length ? (
             <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {packages.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} />)}
+              {packages.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} showAgentPrice={showAgentPrice} />)}
             </div>
           ) : (
             <div className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-12 text-center text-slate-600">

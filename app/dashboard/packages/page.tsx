@@ -43,7 +43,7 @@ export default async function DashboardPackagesPage() {
                 <td>{pkg.published ? "Yes" : "No"}</td>
                 <td className="flex gap-2 p-3">
                   <NavLink href={`/dashboard/packages/${pkg.id}/edit`}>Edit</NavLink>
-                  <DeleteButton id={pkg.id} action={deletePackageAction} confirm={`Delete "${pkg.title}"?`} />
+                  <DeleteButton id={pkg.id} action={deletePackageAction} confirm="Are you sure you want to delete this package?" successMessage="Package deleted" />
                 </td>
               </tr>
             ))}

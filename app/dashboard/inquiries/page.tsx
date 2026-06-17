@@ -29,7 +29,7 @@ export default async function InquiriesPage() {
             <p className="mt-2 text-slate-700">{inquiry.message}</p>
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <InquiryStatusForm id={inquiry.id} status={inquiry.status} />
-              <DeleteButton id={inquiry.id} action={deleteInquiryAction} confirm={`Delete inquiry from ${inquiry.name}?`} />
+              <DeleteButton id={inquiry.id} action={deleteInquiryAction} confirm="Are you sure you want to delete this inquiry?" successMessage="Inquiry deleted" />
             </div>
           </article>
         ))}

@@ -4,9 +4,10 @@ import { CalendarDays, MapPin, Users } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { TravelPackage } from "@/types/database.types";
 
-export function PackageCard({ pkg }: { pkg: TravelPackage }) {
+export function PackageCard({ pkg, showAgentPrice = false }: { pkg: TravelPackage; showAgentPrice?: boolean }) {
   const hasDiscount = pkg.discount_price != null && pkg.discount_price > 0 && pkg.discount_price < pkg.price;
   const savings = hasDiscount ? pkg.price - (pkg.discount_price ?? 0) : 0;
+  const showAgent = showAgentPrice && pkg.agent_price != null;
 
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-teal-200 hover:shadow-[var(--shadow-lift)]">
@@ -46,6 +47,12 @@ export function PackageCard({ pkg }: { pkg: TravelPackage }) {
               <p className="text-xl font-bold tracking-tight text-teal-800">{formatCurrency(pkg.discount_price ?? pkg.price)}</p>
               {hasDiscount ? <p className="text-xs font-semibold text-slate-400 line-through">{formatCurrency(pkg.price)}</p> : null}
             </div>
+            {showAgent ? (
+              <p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-coral-50 px-2 py-0.5 text-[11px] font-semibold text-coral-700">
+                <span className="uppercase tracking-wider">Agent</span>
+                <span className="font-bold text-coral-800">{formatCurrency(pkg.agent_price ?? null)}</span>
+              </p>
+            ) : null}
           </div>
           <Link
             className="inline-flex items-center gap-1.5 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-teal-900/15 transition hover:-translate-y-0.5 hover:bg-teal-800 hover:shadow-lg hover:shadow-teal-900/25"

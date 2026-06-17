@@ -1,26 +1,26 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { Send } from "lucide-react";
-import { toast } from "sonner";
 import { createInquiryAction, type InquiryActionResult, type InquiryFormValues } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
+import { toast } from "@/lib/toast";
 
 const EMPTY: InquiryFormValues = { name: "", email: "", phone: "", subject: "", message: "" };
 
 export function InquiryForm({ packageId, type = "contact" }: { packageId?: string; type?: "contact" | "booking" }) {
   const [state, action, pending] = useActionState<InquiryActionResult | null, FormData>(createInquiryAction, null);
+  const lastHandledRef = useRef<InquiryActionResult | null>(null);
 
   useEffect(() => {
-    if (!state) return;
+    if (!state || state === lastHandledRef.current) return;
+    lastHandledRef.current = state;
     if (state.success) toast.success(state.success);
     else if (state.error) toast.error(state.error);
   }, [state]);
 
   const defaults = state?.values ?? EMPTY;
-  // Remount on each completed submission: on error, defaults are echoed (fields stay filled);
-  // on success, state.values is undefined → defaults are empty → fields clear.
   const formKey = state ? (state.success ? "ok" : `err-${state.error ?? ""}`) + Object.values(defaults).join("|") : "fresh";
 
   return (

@@ -21,7 +21,7 @@ export default async function TestimonialsPage() {
               <p className="text-sm text-slate-600">{item.rating}/5 · {item.active ? "Active" : "Inactive"}</p>
               <p className="mt-1 text-slate-700">{item.review}</p>
             </div>
-            <DeleteButton id={item.id} action={deleteTestimonialAction} confirm={`Delete review by ${item.name}?`} />
+            <DeleteButton id={item.id} action={deleteTestimonialAction} confirm="Are you sure you want to delete this testimonial?" successMessage="Testimonial deleted" />
           </div>
         ))}
       </div>

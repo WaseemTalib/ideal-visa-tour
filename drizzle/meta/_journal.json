@@ -8,6 +8,27 @@
       "when": 1781527372437,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781639927276,
+      "tag": "0001_add_agent_price",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781640418783,
+      "tag": "0002_add_user_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1781643028678,
+      "tag": "0003_add_approved_at",
+      "breakpoints": true
     }
   ]
 }

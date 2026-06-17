@@ -22,6 +22,7 @@ export type TravelPackage = {
   from_location_id: string | null;
   to_location_id: string | null;
   price: number;
+  agent_price: number | null;
   discount_price: number | null;
   duration_days: number;
   duration_nights: number;
@@ -82,6 +83,8 @@ export type Profile = {
   email: string;
   full_name: string | null;
   role: "user" | "admin";
+  status: boolean;
+  approved_at: string | null;
   created_at: string;
   updated_at: string;
 };

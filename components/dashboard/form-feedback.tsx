@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import type { ActionResult } from "@/app/actions";
 
 export function FormFeedback({ state, onSuccess }: { state: ActionResult | null; onSuccess?: () => void }) {

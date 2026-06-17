@@ -50,6 +50,7 @@ function mapPackage(row: PackageRow, fromLocation: Location | null, toLocation: 
     from_location_id: row.from_location_id,
     to_location_id: row.to_location_id,
     price: row.price,
+    agent_price: row.agent_price,
     discount_price: row.discount_price,
     duration_days: row.duration_days,
     duration_nights: row.duration_nights,
@@ -201,6 +202,25 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   return Object.fromEntries(rows.map((row) => [row.key, row.value])) as SiteSettings;
 }
 
+function mapProfile(row: typeof schema.profiles.$inferSelect): Profile {
+  return {
+    id: row.id,
+    email: row.email,
+    full_name: row.full_name,
+    role: row.role,
+    status: row.status,
+    approved_at: row.approved_at ? toIso(row.approved_at) : null,
+    created_at: toIso(row.created_at),
+    updated_at: toIso(row.updated_at),
+  };
+}
+
+function searchFilter(search?: string) {
+  if (!search || !search.trim()) return undefined;
+  const term = `%${search.trim()}%`;
+  return sql`(${schema.profiles.email} ILIKE ${term} OR coalesce(${schema.profiles.full_name}, '') ILIKE ${term})`;
+}
+
 export async function getProfiles(): Promise<Profile[]> {
   const conn = db();
   if (!conn) return [];
@@ -208,14 +228,60 @@ export async function getProfiles(): Promise<Profile[]> {
     .select()
     .from(schema.profiles)
     .orderBy(desc(schema.profiles.created_at));
-  return rows.map((row) => ({
-    id: row.id,
-    email: row.email,
-    full_name: row.full_name,
-    role: row.role,
-    created_at: toIso(row.created_at),
-    updated_at: toIso(row.updated_at),
-  }));
+  return rows.map(mapProfile);
+}
+
+export async function getPendingProfiles(search?: string): Promise<Profile[]> {
+  const conn = db();
+  if (!conn) return [];
+  const conditions = [
+    eq(schema.profiles.role, "user"),
+    sql`${schema.profiles.approved_at} IS NULL`,
+  ];
+  const s = searchFilter(search);
+  if (s) conditions.push(s);
+
+  const rows = await conn
+    .select()
+    .from(schema.profiles)
+    .where(and(...conditions))
+    .orderBy(desc(schema.profiles.created_at));
+  return rows.map(mapProfile);
+}
+
+export async function getApprovedProfiles(
+  page: number,
+  perPage: number,
+  search?: string,
+): Promise<{ rows: Profile[]; total: number }> {
+  const conn = db();
+  if (!conn) return { rows: [], total: 0 };
+  const safePage = Math.max(1, Math.trunc(page));
+  const offset = (safePage - 1) * perPage;
+
+  const conditions = [
+    eq(schema.profiles.role, "user"),
+    sql`${schema.profiles.approved_at} IS NOT NULL`,
+  ];
+  const s = searchFilter(search);
+  if (s) conditions.push(s);
+  const whereClause = and(...conditions);
+
+  const [rows, totals] = await Promise.all([
+    conn
+      .select()
+      .from(schema.profiles)
+      .where(whereClause)
+      .orderBy(desc(schema.profiles.approved_at))
+      .limit(perPage)
+      .offset(offset),
+    conn
+      .select({ count: sql<string>`count(*)::int` })
+      .from(schema.profiles)
+      .where(whereClause),
+  ]);
+
+  return { rows: rows.map(mapProfile), total: Number(totals[0]?.count ?? 0) };
 }
 
 export async function getInquiries(): Promise<Inquiry[]> {

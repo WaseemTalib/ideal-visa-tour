@@ -9,6 +9,7 @@ import { Navbar } from "@/components/public/navbar";
 import { PackageCard } from "@/components/public/package-card";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { getPackageBySlug, getPackages, getSiteSettings } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,12 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
   const { slug } = await params;
   const pkg = await getPackageBySlug(slug);
   if (!pkg) notFound();
-  const [related, settings] = await Promise.all([getPackages({ to: pkg.to_location?.slug }).then((items) => items.filter((item) => item.id !== pkg.id).slice(0, 3)), getSiteSettings()]);
+  const [related, settings, session] = await Promise.all([
+    getPackages({ to: pkg.to_location?.slug }).then((items) => items.filter((item) => item.id !== pkg.id).slice(0, 3)),
+    getSiteSettings(),
+    getCurrentUser(),
+  ]);
+  const showAgentPrice = !!session;
   const gallery = [pkg.main_image_url, ...(pkg.gallery_images ?? [])].filter(Boolean) as string[];
 
   return (
@@ -40,6 +46,9 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
                 <Stat label="Duration" value={`${pkg.duration_days} days / ${pkg.duration_nights} nights`} />
                 <Stat label="Availability" value={`${formatDate(pkg.available_from ?? pkg.start_date)} - ${formatDate(pkg.available_to ?? pkg.end_date)}`} />
                 <Stat label="Price" value={formatCurrency(pkg.discount_price ?? pkg.price)} />
+                {showAgentPrice && pkg.agent_price != null ? (
+                  <Stat label="Agent price" value={formatCurrency(pkg.agent_price)} />
+                ) : null}
               </div>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
@@ -83,7 +92,7 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
             </aside>
           </div>
         </section>
-        {related.length ? <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8"><h2 className="text-xl font-bold tracking-tight sm:text-2xl">Related packages</h2><div className="mt-6 grid gap-6 md:grid-cols-3">{related.map((item) => <PackageCard key={item.id} pkg={item} />)}</div></section> : null}
+        {related.length ? <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8"><h2 className="text-xl font-bold tracking-tight sm:text-2xl">Related packages</h2><div className="mt-6 grid gap-6 md:grid-cols-3">{related.map((item) => <PackageCard key={item.id} pkg={item} showAgentPrice={showAgentPrice} />)}</div></section> : null}
       </main>
       <Footer settings={settings} />
     </>

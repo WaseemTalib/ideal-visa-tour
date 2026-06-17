@@ -1,9 +1,18 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { PlaneTakeoff } from "lucide-react";
 import { LoginForm } from "@/components/forms/login-form";
+import { getCurrentUser } from "@/lib/auth";
 
-export default function LoginPage() {
+export const dynamic = "force-dynamic";
+
+export default async function LoginPage() {
+  const session = await getCurrentUser();
+  if (session) {
+    redirect(session.role === "admin" ? "/dashboard" : "/");
+  }
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-slate-100 to-teal-50/60 px-4">
       <div className="pointer-events-none absolute -left-32 top-1/4 size-80 rounded-full bg-teal-500/15 blur-3xl" />
@@ -17,19 +26,10 @@ export default function LoginPage() {
             Ideal <span className="text-gradient-teal">Visa Tour</span>
           </span>
         </Link>
-        <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Admin login</h1>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          Sign in with an admin account to manage packages, locations, and inquiries.
-        </p>
+        <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Sign in</h1>
         <Suspense>
           <LoginForm />
         </Suspense>
-        <p className="mt-6 text-center text-sm text-slate-600">
-          Don&apos;t have an account?{" "}
-          <Link href="/registeruser" className="font-semibold text-teal-700 hover:underline">
-            Create one
-          </Link>
-        </p>
       </div>
     </main>
   );

@@ -34,8 +34,8 @@ export async function POST(request: Request) {
   if (!ok) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
-  if (profile.role !== "admin") {
-    return NextResponse.json({ error: "Only admin users can access the dashboard." }, { status: 403 });
+  if (profile.role !== "admin" && !profile.status) {
+    return NextResponse.json({ error: "Contact admin for account approval" }, { status: 403 });
   }
 
   let token: string;
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const response = NextResponse.json({ ok: true });
+  const response = NextResponse.json({ ok: true, role: profile.role });
   response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
