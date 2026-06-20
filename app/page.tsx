@@ -4,24 +4,22 @@ import { Compass, CreditCard, FileCheck2, Headphones, Luggage, Plane, Search, Sh
 import { Footer } from "@/components/public/footer";
 import { Navbar } from "@/components/public/navbar";
 import { PackageCard } from "@/components/public/package-card";
-import { SearchForm } from "@/components/public/search-form";
-import { getLocations, getPackages, getSiteSettings, getTestimonials } from "@/lib/data";
+import { getPackages, getSiteSettings, getTestimonials } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [locations, packages, groupPackages, testimonials, settings, session] = await Promise.all([
-    getLocations(),
-    getPackages({ featured: "true" }),
-    getPackages({ type: "group" }),
+  const [packages, testimonials, settings, session] = await Promise.all([
+    getPackages(),
     getTestimonials(),
     getSiteSettings(),
     getCurrentUser(),
   ]);
   const showAgentPrice = !!session;
-  const featured = packages.slice(0, 3);
-  const groups = groupPackages.slice(0, 3);
+  const oneOfEach = (["international", "northern", "umrah"] as const)
+    .map((cat) => packages.find((pkg) => pkg.type === cat))
+    .filter((pkg): pkg is NonNullable<typeof pkg> => Boolean(pkg));
 
   return (
     <>
@@ -62,83 +60,33 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="relative z-10 mx-auto -mt-24 max-w-7xl px-4 sm:px-6 lg:px-8 animate-fade-up [animation-delay:360ms]">
-          <SearchForm locations={locations} />
-        </section>
-
         <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Featured packages</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-500">Browse by category</p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
-                Popular trips <span className="text-gradient-teal">ready to book</span>
+                One pick from each of our <span className="text-gradient-sunset">tour categories</span>
               </h2>
+              <p className="mt-3 max-w-xl text-slate-600">
+                International tours, northern Pakistan departures, and Umrah packages — sample one from each, then explore the rest.
+              </p>
             </div>
-            <Link href="/packages" className="group inline-flex items-center gap-1 font-bold text-teal-700">
-              View all packages
-              <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
-            </Link>
           </div>
-          {featured.length ? (
+          {oneOfEach.length ? (
             <div className="mt-10 grid gap-6 md:grid-cols-3">
-              {featured.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} showAgentPrice={showAgentPrice} />)}
+              {oneOfEach.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} showAgentPrice={showAgentPrice} />)}
             </div>
           ) : (
-            <EmptyState text="No featured packages yet. Add packages from the dashboard." />
+            <EmptyState text="No packages published yet. Add some from the dashboard." />
           )}
-        </section>
-
-        <section className="relative bg-white py-24">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-300 to-transparent" />
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-500">Group packages</p>
-                <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
-                  Upcoming <span className="text-gradient-sunset">fixed departures</span>
-                </h2>
-              </div>
-              <Link href="/group-packages" className="group inline-flex items-center gap-1 font-bold text-teal-700">
-                View group tours
-                <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
-              </Link>
-            </div>
-            {groups.length ? (
-              <div className="mt-10 grid gap-6 md:grid-cols-3">{groups.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} showAgentPrice={showAgentPrice} />)}</div>
-            ) : (
-              <EmptyState text="No group packages are published yet." />
-            )}
-          </div>
-        </section>
-
-        <section className="mx-auto grid max-w-7xl gap-10 px-4 py-24 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Popular destinations</p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
-              Plan by country, city, or <span className="text-gradient-teal">visa-friendly route</span>
-            </h2>
-            <p className="mt-4 max-w-md text-slate-600">Browse curated international destinations. Each location links to every published package heading there.</p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {locations.slice(0, 6).map((location) => (
-              <Link
-                href={`/packages?to=${location.slug}`}
-                key={location.id}
-                className="group relative min-h-40 overflow-hidden rounded-2xl border border-slate-200/60 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                <Image
-                  src={location.image_url || "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=900&q=80"}
-                  alt={location.name}
-                  fill
-                  className="object-cover transition duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
-                <span className="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white">
-                  <span className="text-lg font-bold tracking-tight drop-shadow">{location.name}</span>
-                  <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider backdrop-blur">Explore →</span>
-                </span>
-              </Link>
-            ))}
+          <div className="mt-10 flex justify-center">
+            <Link
+              href="/packages"
+              className="group inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-coral-500 to-coral-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-coral-500/30 hover:-translate-y-0.5 hover:shadow-coral-500/50"
+            >
+              Explore all packages
+              <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
+            </Link>
           </div>
         </section>
 

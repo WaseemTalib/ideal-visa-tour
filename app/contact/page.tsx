@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ChevronDown, Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { InquiryForm } from "@/components/forms/inquiry-form";
+import { isInquiryCategory } from "@/lib/inquiry";
 import { Footer } from "@/components/public/footer";
 import { Navbar } from "@/components/public/navbar";
 import { getSiteSettings } from "@/lib/data";
@@ -78,7 +79,13 @@ const FAQS = [
   },
 ];
 
-export default async function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category } = await searchParams;
+  const defaultCategory = isInquiryCategory(category) ? category : undefined;
   const settings = await getSiteSettings();
   const mapSrc = extractMapSrc(settings.google_maps_embed);
   return (
@@ -156,7 +163,7 @@ export default async function ContactPage() {
                 Share your dates, travelers, and preferences. We&apos;ll respond with options.
               </p>
               <div className="mt-6">
-                <InquiryForm />
+                <InquiryForm whatsapp={String(settings.whatsapp ?? "")} defaultCategory={defaultCategory} />
               </div>
             </div>
           </section>

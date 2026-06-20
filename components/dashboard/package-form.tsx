@@ -79,10 +79,11 @@ export function PackageForm({ pkg, locations }: { pkg?: TravelPackage | null; lo
             </Select>
           </div>
           <div>
-            <Label required>Package type</Label>
-            <Select name="type" defaultValue={pkg?.type ?? "normal"}>
-              <option value="normal">Normal</option>
-              <option value="group">Group</option>
+            <Label required>Category</Label>
+            <Select name="type" defaultValue={pkg?.type ?? "international"}>
+              <option value="international">International</option>
+              <option value="northern">Northern Pakistan</option>
+              <option value="umrah">Umrah</option>
             </Select>
           </div>
         </div>
@@ -140,7 +141,7 @@ export function PackageForm({ pkg, locations }: { pkg?: TravelPackage | null; lo
 
       <section className="grid gap-4">
         <h2 className="text-lg font-bold text-slate-950">Group capacity</h2>
-        <p className="-mt-1 text-sm text-slate-600">Used for group package cards. Leave empty for normal packages.</p>
+        <p className="-mt-1 text-sm text-slate-600">Optional. Use when the package is sold as a fixed-departure group with a seat cap.</p>
         <div className="grid gap-4 md:grid-cols-3">
           <div>
             <Label>Group size</Label>

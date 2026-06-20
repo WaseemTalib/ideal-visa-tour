@@ -15,7 +15,6 @@ import {
   Settings,
   Star,
   UserCheck,
-  Users,
 } from "lucide-react";
 import { LogoutButton } from "@/components/dashboard/logout-button";
 import { cn } from "@/lib/utils";
@@ -23,7 +22,6 @@ import { cn } from "@/lib/utils";
 const links = [
   { label: "Overview", href: "/dashboard", Icon: BarChart3 },
   { label: "Packages", href: "/dashboard/packages", Icon: Package },
-  { label: "Group Tours", href: "/dashboard/group-packages", Icon: Users },
   { label: "Locations", href: "/dashboard/locations", Icon: MapPinned },
   { label: "Inquiries", href: "/dashboard/inquiries", Icon: Inbox },
   { label: "Users", href: "/dashboard/users", Icon: UserCheck },

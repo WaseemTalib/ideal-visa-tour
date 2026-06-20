@@ -3,11 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, XCircle } from "lucide-react";
-import { InquiryForm } from "@/components/forms/inquiry-form";
 import { Footer } from "@/components/public/footer";
 import { Navbar } from "@/components/public/navbar";
 import { PackageCard } from "@/components/public/package-card";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, PACKAGE_CATEGORY_LABEL } from "@/lib/utils";
 import { getPackageBySlug, getPackages, getSiteSettings } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -51,10 +50,22 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
                 ) : null}
               </div>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-xl font-bold text-slate-950">Booking inquiry</h2>
-              <p className="mt-2 text-sm text-slate-600">Send your preferred travelers and dates. The team will confirm availability.</p>
-              <div className="mt-5"><InquiryForm packageId={pkg.id} type="booking" /></div>
+            <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-white to-sand-50 p-6 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-500">Ready to book?</p>
+              <h2 className="mt-2 text-xl font-bold text-slate-950">Send a booking enquiry</h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                Tell us your dates, travellers, and any preferences — the team will confirm availability and walk you through the next steps.
+              </p>
+              <Link
+                href={`/contact?category=${pkg.type}`}
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r from-coral-500 to-coral-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-coral-500/30 transition hover:-translate-y-0.5 hover:shadow-coral-500/50"
+              >
+                Go to contact form
+                <span aria-hidden>→</span>
+              </Link>
+              <p className="mt-3 text-xs text-slate-500">
+                The category will be pre-selected for you.
+              </p>
             </div>
           </div>
           <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -83,7 +94,7 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
             <aside className="h-fit rounded-lg border border-slate-200 bg-slate-50 p-5">
               <h3 className="font-bold text-slate-950">Quick facts</h3>
               <div className="mt-4 grid gap-3 text-sm text-slate-700">
-                <p>Package type: {pkg.type}</p>
+                <p>Category: {PACKAGE_CATEGORY_LABEL[pkg.type]}</p>
                 <p>Group size: {pkg.group_size ?? "Private or custom"}</p>
                 <p>Seats available: {pkg.seats_available ?? "On request"}</p>
                 <p>Departure: {formatDate(pkg.start_date)}</p>

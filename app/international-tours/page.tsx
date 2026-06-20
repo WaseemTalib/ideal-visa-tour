@@ -7,7 +7,7 @@ import { PackageCard } from "@/components/public/package-card";
 import { getPackages, getSiteSettings } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 
-export const metadata: Metadata = { title: "Group Packages" };
+export const metadata: Metadata = { title: "International Group Tours" };
 export const dynamic = "force-dynamic";
 
 const STEPS = [
@@ -41,7 +41,7 @@ const INCLUDED = [
 
 export default async function GroupPackagesPage() {
   const [packages, settings, session] = await Promise.all([
-    getPackages({ type: "group" }),
+    getPackages({ type: "international" }),
     getSiteSettings(),
     getCurrentUser(),
   ]);
@@ -54,10 +54,10 @@ export default async function GroupPackagesPage() {
           <div className="animate-fade-up">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-500">Fixed departures</p>
             <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-4xl">
-              Group <span className="text-gradient-sunset">travel packages</span>
+              International <span className="text-gradient-sunset">group tours</span>
             </h1>
             <p className="mt-3 max-w-xl text-base leading-relaxed text-slate-600">
-              Join confirmed departures with set itineraries, group pricing, and reserved seats.
+              Confirmed departures abroad — Türkiye, Dubai, Malaysia, Thailand, Maldives and more — with visa support, group pricing, and reserved seats.
             </p>
           </div>
           {packages.length ? (
@@ -66,7 +66,7 @@ export default async function GroupPackagesPage() {
             </div>
           ) : (
             <div className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-12 text-center text-slate-600">
-              No published group packages yet.
+              No international group tours published yet.
             </div>
           )}
         </section>

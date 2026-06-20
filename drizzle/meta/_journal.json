@@ -29,6 +29,13 @@
       "when": 1781643028678,
       "tag": "0003_add_approved_at",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1781956876953,
+      "tag": "0004_replace_package_type",
+      "breakpoints": true
     }
   ]
 }

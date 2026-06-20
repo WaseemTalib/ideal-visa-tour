@@ -5,9 +5,11 @@ import { getCurrentUser } from "@/lib/auth";
 
 const links = [
   ["Packages", "/packages"],
-  ["Group Tours", "/group-packages"],
+  ["International Tours", "/international-tours"],
+  ["Northern Tours", "/northern-tours"],
+  ["Umrah", "/umrah"],
+  ["Study Abroad", "/student-consultancy"],
   ["Services", "/services"],
-  ["About", "/about"],
   ["Contact", "/contact"],
 ];
 

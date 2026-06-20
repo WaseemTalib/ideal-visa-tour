@@ -11,7 +11,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const packageType = pgEnum("package_type", ["normal", "group"]);
+export const packageType = pgEnum("package_type", ["international", "northern", "umrah"]);
 export const inquiryType = pgEnum("inquiry_type", ["contact", "booking"]);
 export const inquiryStatus = pgEnum("inquiry_status", ["new", "contacted", "confirmed", "rejected"]);
 export const profileRole = pgEnum("profile_role", ["user", "admin"]);
@@ -52,7 +52,7 @@ export const packages = pgTable("packages", {
   end_date: date("end_date"),
   available_from: date("available_from"),
   available_to: date("available_to"),
-  type: packageType("type").notNull().default("normal"),
+  type: packageType("type").notNull().default("international"),
   group_size: integer("group_size"),
   total_seats: integer("total_seats"),
   seats_available: integer("seats_available"),

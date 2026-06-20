@@ -2,7 +2,7 @@ import { deletePackageAction } from "@/app/actions";
 import { DeleteButton } from "@/components/dashboard/delete-button";
 import { NavLink } from "@/components/dashboard/nav-link";
 import { getPackages } from "@/lib/data";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, PACKAGE_CATEGORY_LABEL } from "@/lib/utils";
 
 export default async function DashboardPackagesPage() {
   const packages = await getPackages({}, false);
@@ -37,7 +37,7 @@ export default async function DashboardPackagesPage() {
             {packages.map((pkg) => (
               <tr key={pkg.id} className="border-t border-slate-100">
                 <td className="p-3 font-semibold">{pkg.title}</td>
-                <td>{pkg.type}</td>
+                <td>{PACKAGE_CATEGORY_LABEL[pkg.type]}</td>
                 <td>{formatCurrency(pkg.price)}</td>
                 <td>{pkg.featured ? "Yes" : "No"}</td>
                 <td>{pkg.published ? "Yes" : "No"}</td>

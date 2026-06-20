@@ -60,3 +60,11 @@ export function extractMapSrc(value: unknown) {
   if (!/^https:\/\/www\.google\.com\/maps\//i.test(candidate)) return null;
   return candidate;
 }
+
+export type PackageCategory = "international" | "northern" | "umrah";
+
+export const PACKAGE_CATEGORY_LABEL: Record<PackageCategory, string> = {
+  international: "International",
+  northern: "Northern Pakistan",
+  umrah: "Umrah",
+};

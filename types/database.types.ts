@@ -30,7 +30,7 @@ export type TravelPackage = {
   end_date: string | null;
   available_from: string | null;
   available_to: string | null;
-  type: "normal" | "group";
+  type: "international" | "northern" | "umrah";
   group_size: number | null;
   total_seats: number | null;
   seats_available: number | null;

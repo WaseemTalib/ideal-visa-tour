@@ -8,7 +8,6 @@ import { requireAdmin, SESSION_COOKIE } from "@/lib/auth";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import {
   changePasswordSchema,
-  inquirySchema,
   locationSchema,
   packageSchema,
   registerSchema,
@@ -17,16 +16,6 @@ import {
 import { itineraryFromText, listFromText, slugify } from "@/lib/utils";
 
 export type ActionResult = { error?: string; success?: string; redirectTo?: string };
-
-export type InquiryFormValues = {
-  name: string;
-  email: string;
-  phone: string;
-  subject: string;
-  message: string;
-};
-
-export type InquiryActionResult = ActionResult & { values?: InquiryFormValues };
 
 export type RegisterFormValues = {
   full_name: string;
@@ -92,46 +81,6 @@ export async function registerUserAction(
   }
 
   return { success: "Contact Admin for approval" };
-}
-
-export async function createInquiryAction(
-  _prev: InquiryActionResult | null,
-  formData: FormData,
-): Promise<InquiryActionResult> {
-  const submitted: InquiryFormValues = {
-    name: String(formData.get("name") ?? "").trim(),
-    email: String(formData.get("email") ?? "").trim(),
-    phone: String(formData.get("phone") ?? "").trim(),
-    subject: String(formData.get("subject") ?? "").trim(),
-    message: String(formData.get("message") ?? "").trim(),
-  };
-
-  const parsed = inquirySchema.safeParse({
-    ...submitted,
-    package_id: formData.get("package_id"),
-    type: formData.get("type") || "contact",
-  });
-  if (!parsed.success) return { error: describeZodError(parsed.error), values: submitted };
-
-  try {
-    await requireDb()
-      .insert(schema.inquiries)
-      .values({
-        name: parsed.data.name,
-        email: parsed.data.email || null,
-        phone: parsed.data.phone,
-        subject: parsed.data.subject || null,
-        message: parsed.data.message,
-        package_id: parsed.data.package_id || null,
-        type: parsed.data.type,
-        status: "new",
-      });
-  } catch (error) {
-    return { error: errorMessage(error, "Unable to send inquiry."), values: submitted };
-  }
-
-  revalidatePath("/dashboard/inquiries");
-  return { success: "Inquiry sent. Our team will contact you shortly." };
 }
 
 export async function savePackageAction(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
@@ -220,9 +169,10 @@ export async function savePackageAction(_prev: ActionResult | null, formData: Fo
   revalidatePath("/");
   revalidatePath("/packages");
   revalidatePath(`/packages/${parsed.slug}`);
-  revalidatePath("/group-packages");
+  revalidatePath("/international-tours");
+  revalidatePath("/northern-tours");
+  revalidatePath("/umrah");
   revalidatePath("/dashboard/packages");
-  revalidatePath("/dashboard/group-packages");
   return { success: editing ? "Package updated." : "Package created.", redirectTo: "/dashboard/packages" };
 }
 
@@ -236,6 +186,9 @@ export async function deletePackageAction(formData: FormData) {
     return;
   }
   revalidatePath("/packages");
+  revalidatePath("/international-tours");
+  revalidatePath("/northern-tours");
+  revalidatePath("/umrah");
   revalidatePath("/dashboard/packages");
 }
 

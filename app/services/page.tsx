@@ -221,7 +221,7 @@ export default async function ServicesPage() {
                 Four steps from <span className="text-gradient-teal">enquiry to take-off</span>
               </h2>
               <p className="mt-3 text-slate-600">
-                Whether it's a visa, a flight ticket, or a full international tour — the workflow is the same on our end.
+                Whether it&apos;s a visa, a flight ticket, or a full international tour — the workflow is the same on our end.
               </p>
             </div>
             <ol className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">

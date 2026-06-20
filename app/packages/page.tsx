@@ -1,144 +1,193 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckCircle2, FileCheck2, Headphones, Hotel, Plane } from "lucide-react";
-import { PackageCard } from "@/components/public/package-card";
+import { Compass } from "lucide-react";
 import { Footer } from "@/components/public/footer";
 import { Navbar } from "@/components/public/navbar";
-import { SearchForm } from "@/components/public/search-form";
-import { getLocations, getPackages, getSiteSettings } from "@/lib/data";
+import { PackageCard } from "@/components/public/package-card";
+import { Input, Label, Select } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth";
+import { getLocations, getPackages, getSiteSettings } from "@/lib/data";
+import { PACKAGE_CATEGORY_LABEL, type PackageCategory } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Travel Packages" };
+export const metadata: Metadata = { title: "All Packages" };
 export const dynamic = "force-dynamic";
 
-const STANDARD_INCLUSIONS = [
-  { Icon: FileCheck2, title: "Visa support", text: "Documentation, embassy filing, and follow-up." },
-  { Icon: Plane, title: "Return flights", text: "Economy class with luggage allowance included." },
-  { Icon: Hotel, title: "Hand-picked hotels", text: "3-4 star stays vetted by our team." },
-  { Icon: Headphones, title: "On-trip support", text: "WhatsApp coordinator throughout your trip." },
+type Filter = "all" | PackageCategory;
+
+const FILTERS: Array<{ value: Filter; label: string }> = [
+  { value: "all", label: "All packages" },
+  { value: "international", label: PACKAGE_CATEGORY_LABEL.international },
+  { value: "northern", label: PACKAGE_CATEGORY_LABEL.northern },
+  { value: "umrah", label: PACKAGE_CATEGORY_LABEL.umrah },
 ];
 
-export default async function PackagesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const params = await searchParams;
-  const [locations, packages, settings, session] = await Promise.all([
+function parseFilter(value: string | undefined): Filter {
+  if (value === "international" || value === "northern" || value === "umrah") return value;
+  return "all";
+}
+
+function clean(value: string | undefined) {
+  const v = (value ?? "").trim();
+  return v || undefined;
+}
+
+function buildQuery(params: Record<string, string | undefined>) {
+  const search = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) if (v) search.set(k, v);
+  const q = search.toString();
+  return q ? `?${q}` : "";
+}
+
+export default async function PackagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string; to?: string; startDate?: string; endDate?: string }>;
+}) {
+  const sp = await searchParams;
+  const filter = parseFilter(sp.category);
+  const toParam = clean(sp.to);
+  const startDate = clean(sp.startDate);
+  const endDate = clean(sp.endDate);
+
+  const [allPackages, locations, settings, session] = await Promise.all([
+    getPackages({ to: toParam, startDate, endDate }),
     getLocations(),
-    getPackages(params),
     getSiteSettings(),
     getCurrentUser(),
   ]);
-  const showAgentPrice = !!session;
 
-  const popularDestinations = locations
-    .filter((loc) => loc.slug !== "lahore")
-    .slice(0, 8);
+  const counts: Record<Filter, number> = {
+    all: allPackages.length,
+    international: 0,
+    northern: 0,
+    umrah: 0,
+  };
+  for (const pkg of allPackages) {
+    counts[pkg.type] += 1;
+  }
+
+  const visible =
+    filter === "all" ? allPackages : allPackages.filter((pkg) => pkg.type === filter);
+  const showAgentPrice = !!session;
+  const hasFilters = Boolean(filter !== "all" || toParam || startDate || endDate);
 
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-8 animate-fade-up">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Package search</p>
-          <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-4xl">
-            Browse <span className="text-gradient-teal">tour packages</span>
-          </h1>
-          <p className="mt-3 max-w-xl text-base leading-relaxed text-slate-600">Filter by route, type, and price to find the trip that fits your plan.</p>
-        </div>
-        <SearchForm locations={locations} />
-        <form className="mt-6 grid gap-3 rounded-2xl border border-slate-200/70 bg-white/80 p-4 backdrop-blur md:grid-cols-5" action="/packages">
-          <select name="to" defaultValue={params.to ?? ""} className="h-11 rounded-md border border-slate-300 bg-white px-3 text-sm">
-            <option value="">Destination</option>
-            {locations.map((l) => <option key={l.id} value={l.slug}>{l.name}</option>)}
-          </select>
-          <select name="from" defaultValue={params.from ?? ""} className="h-11 rounded-md border border-slate-300 bg-white px-3 text-sm">
-            <option value="">From location</option>
-            {locations.map((l) => <option key={l.id} value={l.slug}>{l.name}</option>)}
-          </select>
-          <input name="maxPrice" defaultValue={params.maxPrice ?? ""} placeholder="Max price" className="h-11 rounded-md border border-slate-300 bg-white px-3 text-sm" />
-          <select name="type" defaultValue={params.type ?? ""} className="h-11 rounded-md border border-slate-300 bg-white px-3 text-sm">
-            <option value="">Any type</option>
-            <option value="normal">Normal</option>
-            <option value="group">Group</option>
-          </select>
-          <button className="h-11 rounded-md bg-gradient-to-r from-teal-700 to-teal-800 px-4 text-sm font-semibold text-white shadow-md shadow-teal-900/20 hover:-translate-y-0.5">
-            Apply filters
-          </button>
-        </form>
+      <main>
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="animate-fade-up">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-500">All categories</p>
+            <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-4xl">
+              Browse every <span className="text-gradient-sunset">tour we run</span>
+            </h1>
+            <p className="mt-3 max-w-xl text-base leading-relaxed text-slate-600">
+              International tours, northern Pakistan departures, and Umrah packages — all in one place. Filter by category, destination, or date.
+            </p>
+          </div>
+        </section>
 
-        {popularDestinations.length ? (
-          <div className="mt-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-500">Browse by destination</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {popularDestinations.map((loc) => {
-                const active = params.to === loc.slug;
+        <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+          {/* Category chips */}
+          <div className="sticky top-16 z-20 -mx-4 mb-6 border-b border-slate-200/70 bg-white/85 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="mr-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Category</span>
+              {FILTERS.map(({ value, label }) => {
+                const active = filter === value;
+                const count = counts[value];
+                const href = `/packages${buildQuery({
+                  category: value === "all" ? undefined : value,
+                  to: toParam,
+                  startDate,
+                  endDate,
+                })}`;
                 return (
                   <Link
-                    key={loc.id}
-                    href={`/packages?to=${loc.slug}`}
+                    key={value}
+                    href={href}
                     aria-current={active ? "page" : undefined}
                     className={
                       active
-                        ? "inline-flex items-center gap-2 rounded-full border border-teal-700 bg-teal-700 px-4 py-1.5 text-sm font-semibold text-white shadow-sm"
-                        : "inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-200 hover:text-teal-800 hover:shadow-md"
+                        ? "inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-teal-700 to-teal-800 px-4 py-1.5 text-sm font-semibold text-white shadow-md shadow-teal-900/20"
+                        : "inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-teal-200 hover:text-teal-700 hover:shadow-sm"
                     }
                   >
-                    {loc.name}
-                    {loc.country ? (
-                      <span className={active ? "text-[11px] font-medium text-white/80" : "text-[11px] font-medium text-slate-400"}>
-                        {loc.country}
-                      </span>
-                    ) : null}
+                    {label}
+                    <span
+                      className={
+                        active
+                          ? "rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold"
+                          : "rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600"
+                      }
+                    >
+                      {count}
+                    </span>
                   </Link>
                 );
               })}
-              {params.to ? (
+            </div>
+          </div>
+
+          {/* Destination + Date filters */}
+          <form
+            action="/packages"
+            method="get"
+            className="mb-8 grid gap-4 rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm sm:p-5 md:grid-cols-[1.4fr_1fr_1fr_auto] md:items-end"
+          >
+            {filter !== "all" ? <input type="hidden" name="category" value={filter} /> : null}
+            <div>
+              <Label>Destination</Label>
+              <Select name="to" defaultValue={toParam ?? ""}>
+                <option value="">Any destination</option>
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.slug}>
+                    {loc.name}
+                    {loc.country ? ` · ${loc.country}` : ""}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <Label>Depart on or after</Label>
+              <Input type="date" name="startDate" defaultValue={startDate ?? ""} />
+            </div>
+            <div>
+              <Label>Return on or before</Label>
+              <Input type="date" name="endDate" defaultValue={endDate ?? ""} />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button type="submit" className="w-full sm:w-auto">Apply</Button>
+              {hasFilters ? (
                 <Link
                   href="/packages"
-                  className="inline-flex items-center gap-1 rounded-full border border-transparent bg-slate-100 px-4 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-200"
+                  className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50"
                 >
-                  Clear filter
+                  Reset
                 </Link>
               ) : null}
             </div>
-          </div>
-        ) : null}
+          </form>
 
-        {packages.length ? (
-          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{packages.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} showAgentPrice={showAgentPrice} />)}</div>
-        ) : (
-          <div className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-12 text-center text-slate-600">
-            No matching packages found. Try widening your filters.
-          </div>
-        )}
-
-        <section className="mt-16 rounded-2xl border border-slate-200/70 bg-gradient-to-br from-sand-50 to-white p-6 shadow-sm sm:p-10">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div className="max-w-xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Every package includes</p>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
-                Travel essentials, <span className="text-gradient-teal">always bundled in</span>
-              </h2>
+          {visible.length ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {visible.map((pkg) => (
+                <PackageCard key={pkg.id} pkg={pkg} showAgentPrice={showAgentPrice} />
+              ))}
             </div>
-            <p className="max-w-sm text-sm leading-relaxed text-slate-600">
-              No surprise add-ons at checkout — every package comes with visa support, flights, and on-trip help.
-            </p>
-          </div>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {STANDARD_INCLUSIONS.map(({ Icon, title, text }) => (
-              <div
-                key={title}
-                className="group rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <span className="inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500/15 to-teal-700/15 text-teal-700 ring-1 ring-teal-100 transition group-hover:rotate-6">
-                  <Icon size={20} />
-                </span>
-                <h3 className="mt-4 flex items-center gap-2 text-base font-bold text-slate-950">
-                  <CheckCircle2 size={16} className="text-emerald-600" />
-                  {title}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
-              </div>
-            ))}
-          </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-12 text-center">
+              <Compass className="mx-auto mb-3 size-8 text-slate-400" />
+              <p className="font-semibold text-slate-700">No packages match these filters.</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Try a different category, destination, or date — or{" "}
+                <Link href="/contact" className="font-semibold text-teal-700 hover:underline">
+                  ask us about an upcoming departure
+                </Link>
+                .
+              </p>
+            </div>
+          )}
         </section>
       </main>
       <Footer settings={settings} />

@@ -58,7 +58,7 @@ export const packageSchema = z.object({
   duration_nights: z.coerce.number().int().min(0, "Nights cannot be negative"),
   start_date: z.string().min(1, "Start date is required"),
   end_date: z.string().min(1, "End date is required"),
-  type: z.enum(["normal", "group"]),
+  type: z.enum(["international", "northern", "umrah"]),
   group_size: optionalPositiveInt,
   total_seats: optionalPositiveInt,
   seats_available: optionalPositiveInt,

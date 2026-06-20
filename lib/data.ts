@@ -99,7 +99,7 @@ export async function getPackages(filters: PackageSearch = {}, publishedOnly = t
 
   const conditions = [] as ReturnType<typeof eq>[];
   if (publishedOnly) conditions.push(eq(schema.packages.published, true));
-  if (filters.type === "normal" || filters.type === "group") {
+  if (filters.type === "international" || filters.type === "northern" || filters.type === "umrah") {
     conditions.push(eq(schema.packages.type, filters.type));
   }
   if (filters.featured === "true") conditions.push(eq(schema.packages.featured, true));

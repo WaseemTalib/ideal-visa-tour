@@ -70,8 +70,11 @@ export async function Footer({ settings }: { settings: SiteSettings }) {
         <div>
           <h3 className="font-semibold">Quick links</h3>
           <div className="mt-4 grid gap-2 text-sm text-slate-300">
-            <Link href="/packages">Packages</Link>
-            <Link href="/group-packages">Group packages</Link>
+            <Link href="/packages">All packages</Link>
+            <Link href="/international-tours">International tours</Link>
+            <Link href="/northern-tours">Northern tours</Link>
+            <Link href="/umrah">Umrah packages</Link>
+            <Link href="/student-consultancy">Study abroad</Link>
             <Link href="/services">Services</Link>
             <Link href="/about">About</Link>
             <Link href="/contact">Contact</Link>

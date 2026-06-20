@@ -5,10 +5,10 @@ import { formatDate } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const [packages, inquiries] = await Promise.all([getPackages({}, false), getInquiries()]);
-  const groupPackages = packages.filter((pkg) => pkg.type === "group");
-  const upcoming = groupPackages
+  const upcoming = packages
     .filter((pkg) => pkg.start_date && new Date(pkg.start_date) >= new Date())
     .slice(0, 5);
+  const upcomingTotal = packages.filter((pkg) => pkg.start_date && new Date(pkg.start_date) >= new Date()).length;
   const newInquiries = inquiries.filter((inq) => inq.status === "new").length;
 
   return (
@@ -24,7 +24,7 @@ export default async function DashboardPage() {
       </div>
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Metric label="Total packages" value={packages.length} Icon={Package} tint="from-teal-500/15 to-teal-600/5" accent="text-teal-700" />
-        <Metric label="Group packages" value={groupPackages.length} Icon={CalendarCheck} tint="from-coral-500/15 to-coral-600/5" accent="text-coral-600" />
+        <Metric label="Upcoming departures" value={upcomingTotal} Icon={CalendarCheck} tint="from-coral-500/15 to-coral-600/5" accent="text-coral-600" />
         <Metric
           label="Total inquiries"
           value={inquiries.length}
@@ -63,9 +63,9 @@ export default async function DashboardPage() {
             ))
           )}
         </Panel>
-        <Panel title="Upcoming group tours" href="/dashboard/group-packages">
+        <Panel title="Upcoming departures" href="/dashboard/packages">
           {upcoming.length === 0 ? (
-            <p className="text-sm text-slate-500">No upcoming group tours.</p>
+            <p className="text-sm text-slate-500">No upcoming departures.</p>
           ) : (
             upcoming.map((pkg) => (
               <div key={pkg.id} className="flex items-center justify-between border-b border-slate-100 py-3 text-sm last:border-0">

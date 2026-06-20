@@ -60,7 +60,7 @@ export default async function AboutPage() {
   const [packages, settings] = await Promise.all([getPackages(), getSiteSettings()]);
   const stats = [
     { label: "Packages", value: packages.length, tint: "from-teal-50 to-white text-teal-800" },
-    { label: "Group tours", value: packages.filter((p) => p.type === "group").length, tint: "from-coral-50 to-white text-coral-600" },
+    { label: "International tours", value: packages.filter((p) => p.type === "international").length, tint: "from-coral-50 to-white text-coral-600" },
     { label: "Destinations", value: new Set(packages.map((p) => p.to_location_id)).size, tint: "from-teal-50 to-white text-teal-800" },
     { label: "Support", value: "24/7", tint: "from-slate-50 to-white text-slate-900" },
   ];
