@@ -19,7 +19,7 @@ const TEXT_FIELDS: Array<{ key: string; label: string; placeholder?: string }> =
   { key: "email", label: "Contact email", placeholder: "hello@example.com" },
   { key: "address", label: "Office address" },
   { key: "facebook", label: "Facebook URL", placeholder: "https://facebook.com/..." },
-  { key: "instagram", label: "Instagram URL", placeholder: "https://instagram.com/..." },
+  { key: "youtube", label: "YouTube URL", placeholder: "https://youtube.com/@yourchannel" },
   { key: "tiktok", label: "TikTok URL", placeholder: "https://tiktok.com/@yourhandle" },
 ];
 

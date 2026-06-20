@@ -13,12 +13,10 @@ function FacebookIcon({ size = 16 }: IconProps) {
   );
 }
 
-function InstagramIcon({ size = 16 }: IconProps) {
+function YoutubeIcon({ size = 16 }: IconProps) {
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="5" />
-      <circle cx="12" cy="12" r="3.6" />
-      <circle cx="17.4" cy="6.6" r="0.9" fill="currentColor" stroke="none" />
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" fill="currentColor">
+      <path d="M22.5 6.4a2.7 2.7 0 0 0-1.9-1.9C18.9 4 12 4 12 4s-6.9 0-8.6.5A2.7 2.7 0 0 0 1.5 6.4 28 28 0 0 0 1 12a28 28 0 0 0 .5 5.6 2.7 2.7 0 0 0 1.9 1.9C5.1 20 12 20 12 20s6.9 0 8.6-.5a2.7 2.7 0 0 0 1.9-1.9A28 28 0 0 0 23 12a28 28 0 0 0-.5-5.6ZM10 15.5v-7l6 3.5-6 3.5Z" />
     </svg>
   );
 }
@@ -33,7 +31,7 @@ function TiktokIcon({ size = 16 }: IconProps) {
 
 export async function Footer({ settings }: { settings: SiteSettings }) {
   const facebook = String(settings.facebook ?? "").trim();
-  const instagram = String(settings.instagram ?? "").trim();
+  const youtube = String(settings.youtube ?? "").trim();
   const tiktok = String(settings.tiktok ?? "").trim();
   const session = await getCurrentUser();
 
@@ -50,9 +48,9 @@ export async function Footer({ settings }: { settings: SiteSettings }) {
           <p className="mt-3 max-w-sm text-sm leading-6 text-slate-300">
             Curated international tour packages with visa support, group departures, and end-to-end trip planning.
           </p>
-          {(facebook || instagram || tiktok) ? (
+          {(facebook || youtube || tiktok) ? (
             <div className="mt-5 flex gap-2">
-              {[{ href: facebook, label: "Facebook", Icon: FacebookIcon }, { href: instagram, label: "Instagram", Icon: InstagramIcon }, { href: tiktok, label: "TikTok", Icon: TiktokIcon }]
+              {[{ href: facebook, label: "Facebook", Icon: FacebookIcon }, { href: youtube, label: "YouTube", Icon: YoutubeIcon }, { href: tiktok, label: "TikTok", Icon: TiktokIcon }]
                 .filter((item) => item.href)
                 .map(({ href, label, Icon }) => (
                   <a
@@ -74,6 +72,7 @@ export async function Footer({ settings }: { settings: SiteSettings }) {
           <div className="mt-4 grid gap-2 text-sm text-slate-300">
             <Link href="/packages">Packages</Link>
             <Link href="/group-packages">Group packages</Link>
+            <Link href="/services">Services</Link>
             <Link href="/about">About</Link>
             <Link href="/contact">Contact</Link>
             {session ? null : <Link href="/login">Login</Link>}

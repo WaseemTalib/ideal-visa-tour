@@ -494,7 +494,7 @@ export async function saveSiteSettingsAction(_prev: ActionResult | null, formDat
     "email",
     "address",
     "facebook",
-    "instagram",
+    "youtube",
     "tiktok",
     "google_maps_embed",
     "homepage_cta",

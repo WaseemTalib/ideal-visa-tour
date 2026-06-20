@@ -382,7 +382,7 @@ async function seedDatabase(sql) {
     { key: "email", value: "info@idealvisatour.com" },
     { key: "address", value: "Office 12, Main Boulevard, Lahore, Pakistan" },
     { key: "facebook", value: "https://facebook.com" },
-    { key: "instagram", value: "https://instagram.com" },
+    { key: "youtube", value: "https://youtube.com" },
     { key: "tiktok", value: "" },
     { key: "google_maps_embed", value: "" },
     { key: "homepage_cta", value: "Ready to plan your next international trip?" },

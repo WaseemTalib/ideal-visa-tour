@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 const links = [
   ["Packages", "/packages"],
   ["Group Tours", "/group-packages"],
+  ["Services", "/services"],
   ["About", "/about"],
   ["Contact", "/contact"],
 ];
