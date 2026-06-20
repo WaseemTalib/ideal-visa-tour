@@ -1,6 +1,6 @@
-import { aliasedTable, and, desc, eq, gte, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, or, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
-import type { Inquiry, Location, Profile, SiteSettings, Testimonial, TravelPackage } from "@/types/database.types";
+import type { Location, Profile, SiteSettings, Testimonial, TravelPackage } from "@/types/database.types";
 
 export type PackageSearch = {
   from?: string;
@@ -12,7 +12,6 @@ export type PackageSearch = {
   minPrice?: string;
   maxPrice?: string;
   duration?: string;
-  featured?: string;
 };
 
 function toIso(value: unknown) {
@@ -38,7 +37,7 @@ function mapLocation(row: typeof schema.locations.$inferSelect | null | undefine
 
 type PackageRow = typeof schema.packages.$inferSelect;
 
-function mapPackage(row: PackageRow, fromLocation: Location | null, toLocation: Location | null): TravelPackage {
+function mapPackage(row: PackageRow): TravelPackage {
   return {
     id: row.id,
     title: row.title,
@@ -47,8 +46,8 @@ function mapPackage(row: PackageRow, fromLocation: Location | null, toLocation: 
     description: row.description,
     main_image_url: row.main_image_url,
     gallery_images: row.gallery_images ?? [],
-    from_location_id: row.from_location_id,
-    to_location_id: row.to_location_id,
+    from_location: row.from_location,
+    to_location: row.to_location,
     price: row.price,
     agent_price: row.agent_price,
     discount_price: row.discount_price,
@@ -56,8 +55,6 @@ function mapPackage(row: PackageRow, fromLocation: Location | null, toLocation: 
     duration_nights: row.duration_nights,
     start_date: row.start_date,
     end_date: row.end_date,
-    available_from: row.available_from,
-    available_to: row.available_to,
     type: row.type,
     group_size: row.group_size,
     total_seats: row.total_seats,
@@ -68,14 +65,11 @@ function mapPackage(row: PackageRow, fromLocation: Location | null, toLocation: 
     hotel_details: row.hotel_details,
     transport_details: row.transport_details,
     terms: row.terms,
-    featured: row.featured,
     published: row.published,
     seo_title: row.seo_title,
     seo_description: row.seo_description,
     created_at: toIso(row.created_at),
     updated_at: toIso(row.updated_at),
-    from_location: fromLocation,
-    to_location: toLocation,
   };
 }
 
@@ -94,15 +88,11 @@ export async function getPackages(filters: PackageSearch = {}, publishedOnly = t
   const conn = db();
   if (!conn) return [];
 
-  const fromLoc = aliasedTable(schema.locations, "from_loc");
-  const toLoc = aliasedTable(schema.locations, "to_loc");
-
   const conditions = [] as ReturnType<typeof eq>[];
   if (publishedOnly) conditions.push(eq(schema.packages.published, true));
   if (filters.type === "international" || filters.type === "northern" || filters.type === "umrah") {
     conditions.push(eq(schema.packages.type, filters.type));
   }
-  if (filters.featured === "true") conditions.push(eq(schema.packages.featured, true));
   if (filters.minPrice) conditions.push(gte(schema.packages.price, Number(filters.minPrice)));
   if (filters.maxPrice) conditions.push(lte(schema.packages.price, Number(filters.maxPrice)));
   if (filters.duration) conditions.push(eq(schema.packages.duration_days, Number(filters.duration)));
@@ -117,52 +107,57 @@ export async function getPackages(filters: PackageSearch = {}, publishedOnly = t
   if (filters.startDate) {
     conditions.push(
       or(
-        sql`${schema.packages.available_to} IS NULL`,
-        gte(schema.packages.available_to, filters.startDate),
+        sql`${schema.packages.start_date} IS NULL`,
+        gte(schema.packages.start_date, filters.startDate),
       )!,
     );
   }
   if (filters.endDate) {
     conditions.push(
       or(
-        sql`${schema.packages.available_from} IS NULL`,
-        lte(schema.packages.available_from, filters.endDate),
+        sql`${schema.packages.end_date} IS NULL`,
+        lte(schema.packages.end_date, filters.endDate),
       )!,
     );
   }
   if (filters.from) {
-    conditions.push(or(eq(fromLoc.slug, filters.from), sql`lower(${fromLoc.name}) = ${filters.from}`)!);
+    conditions.push(sql`lower(${schema.packages.from_location}) = ${filters.from.toLowerCase()}`);
   }
   if (filters.to) {
-    conditions.push(or(eq(toLoc.slug, filters.to), sql`lower(${toLoc.name}) = ${filters.to}`)!);
+    conditions.push(sql`lower(${schema.packages.to_location}) = ${filters.to.toLowerCase()}`);
   }
 
   const rows = await conn
-    .select({ pkg: schema.packages, from: fromLoc, to: toLoc })
+    .select()
     .from(schema.packages)
-    .leftJoin(fromLoc, eq(schema.packages.from_location_id, fromLoc.id))
-    .leftJoin(toLoc, eq(schema.packages.to_location_id, toLoc.id))
     .where(conditions.length ? and(...conditions) : undefined)
     .orderBy(desc(schema.packages.created_at));
 
-  return rows.map((r) => mapPackage(r.pkg, mapLocation(r.from), mapLocation(r.to)));
+  return rows.map(mapPackage);
 }
 
 async function getOnePackage(where: ReturnType<typeof eq>) {
   const conn = db();
   if (!conn) return null;
-  const fromLoc = aliasedTable(schema.locations, "from_loc");
-  const toLoc = aliasedTable(schema.locations, "to_loc");
   const rows = await conn
-    .select({ pkg: schema.packages, from: fromLoc, to: toLoc })
+    .select()
     .from(schema.packages)
-    .leftJoin(fromLoc, eq(schema.packages.from_location_id, fromLoc.id))
-    .leftJoin(toLoc, eq(schema.packages.to_location_id, toLoc.id))
     .where(where)
     .limit(1);
   const row = rows[0];
   if (!row) return null;
-  return mapPackage(row.pkg, mapLocation(row.from), mapLocation(row.to));
+  return mapPackage(row);
+}
+
+export async function getDistinctDestinations(): Promise<string[]> {
+  const conn = db();
+  if (!conn) return [];
+  const rows = await conn
+    .selectDistinct({ to_location: schema.packages.to_location })
+    .from(schema.packages)
+    .where(and(eq(schema.packages.published, true), sql`${schema.packages.to_location} IS NOT NULL`))
+    .orderBy(schema.packages.to_location);
+  return rows.map((r) => r.to_location!).filter(Boolean);
 }
 
 export async function getPackageBySlug(slug: string) {
@@ -284,27 +279,3 @@ export async function getApprovedProfiles(
   return { rows: rows.map(mapProfile), total: Number(totals[0]?.count ?? 0) };
 }
 
-export async function getInquiries(): Promise<Inquiry[]> {
-  const conn = db();
-  if (!conn) return [];
-  const rows = await conn
-    .select({ inquiry: schema.inquiries, pkg: schema.packages })
-    .from(schema.inquiries)
-    .leftJoin(schema.packages, eq(schema.inquiries.package_id, schema.packages.id))
-    .orderBy(desc(schema.inquiries.created_at));
-
-  return rows.map(({ inquiry, pkg }) => ({
-    id: inquiry.id,
-    name: inquiry.name,
-    email: inquiry.email,
-    phone: inquiry.phone,
-    subject: inquiry.subject,
-    message: inquiry.message,
-    package_id: inquiry.package_id,
-    type: inquiry.type,
-    status: inquiry.status,
-    created_at: toIso(inquiry.created_at),
-    updated_at: toIso(inquiry.updated_at),
-    package: pkg ? mapPackage(pkg, null, null) : null,
-  }));
-}

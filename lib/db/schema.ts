@@ -12,8 +12,6 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const packageType = pgEnum("package_type", ["international", "northern", "umrah"]);
-export const inquiryType = pgEnum("inquiry_type", ["contact", "booking"]);
-export const inquiryStatus = pgEnum("inquiry_status", ["new", "contacted", "confirmed", "rejected"]);
 export const profileRole = pgEnum("profile_role", ["user", "admin"]);
 
 const timestamps = {
@@ -41,8 +39,8 @@ export const packages = pgTable("packages", {
   description: text("description"),
   main_image_url: text("main_image_url"),
   gallery_images: text("gallery_images").array().notNull().default(sql`'{}'::text[]`),
-  from_location_id: text("from_location_id").references(() => locations.id, { onDelete: "set null" }),
-  to_location_id: text("to_location_id").references(() => locations.id, { onDelete: "set null" }),
+  from_location: text("from_location"),
+  to_location: text("to_location"),
   price: integer("price").notNull(),
   agent_price: integer("agent_price"),
   discount_price: integer("discount_price"),
@@ -50,8 +48,6 @@ export const packages = pgTable("packages", {
   duration_nights: integer("duration_nights").notNull(),
   start_date: date("start_date"),
   end_date: date("end_date"),
-  available_from: date("available_from"),
-  available_to: date("available_to"),
   type: packageType("type").notNull().default("international"),
   group_size: integer("group_size"),
   total_seats: integer("total_seats"),
@@ -62,23 +58,9 @@ export const packages = pgTable("packages", {
   hotel_details: text("hotel_details"),
   transport_details: text("transport_details"),
   terms: text("terms"),
-  featured: boolean("featured").default(false).notNull(),
   published: boolean("published").default(true).notNull(),
   seo_title: text("seo_title"),
   seo_description: text("seo_description"),
-  ...timestamps,
-});
-
-export const inquiries = pgTable("inquiries", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  email: text("email"),
-  phone: text("phone").notNull(),
-  subject: text("subject"),
-  message: text("message").notNull(),
-  package_id: text("package_id").references(() => packages.id, { onDelete: "set null" }),
-  type: inquiryType("type").notNull().default("contact"),
-  status: inquiryStatus("status").notNull().default("new"),
   ...timestamps,
 });
 
@@ -113,8 +95,6 @@ export type Package = typeof packages.$inferSelect;
 export type NewPackage = typeof packages.$inferInsert;
 export type Location = typeof locations.$inferSelect;
 export type NewLocation = typeof locations.$inferInsert;
-export type Inquiry = typeof inquiries.$inferSelect;
-export type NewInquiry = typeof inquiries.$inferInsert;
 export type Testimonial = typeof testimonials.$inferSelect;
 export type NewTestimonial = typeof testimonials.$inferInsert;
 export type SiteSetting = typeof siteSettings.$inferSelect;

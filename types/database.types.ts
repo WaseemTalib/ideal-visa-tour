@@ -19,8 +19,8 @@ export type TravelPackage = {
   description: string | null;
   main_image_url: string | null;
   gallery_images: string[];
-  from_location_id: string | null;
-  to_location_id: string | null;
+  from_location: string | null;
+  to_location: string | null;
   price: number;
   agent_price: number | null;
   discount_price: number | null;
@@ -28,8 +28,6 @@ export type TravelPackage = {
   duration_nights: number;
   start_date: string | null;
   end_date: string | null;
-  available_from: string | null;
-  available_to: string | null;
   type: "international" | "northern" | "umrah";
   group_size: number | null;
   total_seats: number | null;
@@ -40,29 +38,11 @@ export type TravelPackage = {
   hotel_details: string | null;
   transport_details: string | null;
   terms: string | null;
-  featured: boolean;
   published: boolean;
   seo_title: string | null;
   seo_description: string | null;
   created_at: string;
   updated_at: string;
-  from_location?: Location | null;
-  to_location?: Location | null;
-};
-
-export type Inquiry = {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string;
-  subject: string | null;
-  message: string;
-  package_id: string | null;
-  type: "contact" | "booking";
-  status: "new" | "contacted" | "confirmed" | "rejected";
-  created_at: string;
-  updated_at: string;
-  package?: TravelPackage | null;
 };
 
 export type Testimonial = {

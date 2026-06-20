@@ -7,11 +7,11 @@ import { SubmitButton } from "@/components/dashboard/submit-button";
 import { UploadField } from "@/components/dashboard/upload-field";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
-import type { Location, TravelPackage } from "@/types/database.types";
+import type { TravelPackage } from "@/types/database.types";
 
 const initialState: ActionResult | null = null;
 
-export function PackageForm({ pkg, locations }: { pkg?: TravelPackage | null; locations: Location[] }) {
+export function PackageForm({ pkg }: { pkg?: TravelPackage | null }) {
   const [state, formAction] = useActionState(savePackageAction, initialState);
   const itineraryDefault = (pkg?.itinerary ?? [])
     .map((item) => `${item.title}: ${item.detail}`)
@@ -50,41 +50,30 @@ export function PackageForm({ pkg, locations }: { pkg?: TravelPackage | null; lo
         </div>
         <UploadField
           name="main_image_url"
-          label="Main image"
+          label="Main image (optional)"
           bucket="package-images"
           defaultValue={pkg?.main_image_url}
-          required
         />
       </section>
 
       <section className="grid gap-4">
         <h2 className="text-lg font-bold text-slate-950">Route &amp; pricing</h2>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div>
+          <Label required>Category</Label>
+          <Select name="type" defaultValue={pkg?.type ?? "international"}>
+            <option value="international">International</option>
+            <option value="northern">Northern</option>
+            <option value="umrah">Umrah</option>
+          </Select>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <Label required>From location</Label>
-            <Select name="from_location_id" defaultValue={pkg?.from_location_id ?? ""} required>
-              <option value="">Select</option>
-              {locations.map((location) => (
-                <option key={location.id} value={location.id}>{location.name}</option>
-              ))}
-            </Select>
+            <Label>From (optional)</Label>
+            <Input name="from_location" defaultValue={pkg?.from_location ?? ""} placeholder="e.g. Lahore" />
           </div>
           <div>
             <Label required>Destination</Label>
-            <Select name="to_location_id" defaultValue={pkg?.to_location_id ?? ""} required>
-              <option value="">Select</option>
-              {locations.map((location) => (
-                <option key={location.id} value={location.id}>{location.name}</option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Label required>Category</Label>
-            <Select name="type" defaultValue={pkg?.type ?? "international"}>
-              <option value="international">International</option>
-              <option value="northern">Northern Pakistan</option>
-              <option value="umrah">Umrah</option>
-            </Select>
+            <Input name="to_location" defaultValue={pkg?.to_location ?? ""} placeholder="e.g. Istanbul, Türkiye" required />
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
@@ -140,8 +129,8 @@ export function PackageForm({ pkg, locations }: { pkg?: TravelPackage | null; lo
       </section>
 
       <section className="grid gap-4">
-        <h2 className="text-lg font-bold text-slate-950">Group capacity</h2>
-        <p className="-mt-1 text-sm text-slate-600">Optional. Use when the package is sold as a fixed-departure group with a seat cap.</p>
+        <h2 className="text-lg font-bold text-slate-950">Capacity (optional)</h2>
+        <p className="-mt-1 text-sm text-slate-600">Use when the package is sold as a fixed-departure with a seat cap — typical for group tours and Umrah departures.</p>
         <div className="grid gap-4 md:grid-cols-3">
           <div>
             <Label>Group size</Label>
@@ -169,12 +158,10 @@ export function PackageForm({ pkg, locations }: { pkg?: TravelPackage | null; lo
           <Textarea name="excluded" defaultValue={(pkg?.excluded ?? []).join("\n")} />
         </div>
         <div>
-          <Label required>Itinerary (one day per line as &quot;Title: Detail&quot;)</Label>
+          <Label>Itinerary (one day per line as &quot;Title: Detail&quot;)</Label>
           <Textarea
             name="itinerary"
             defaultValue={itineraryDefault}
-            minLength={10}
-            required
             className="min-h-36"
           />
         </div>
@@ -202,13 +189,7 @@ export function PackageForm({ pkg, locations }: { pkg?: TravelPackage | null; lo
         </div>
       </section>
 
-      <div className="flex flex-wrap items-center gap-x-8 gap-y-4 rounded-xl border border-slate-200/70 bg-slate-50/60 p-4">
-        <Checkbox
-          name="featured"
-          defaultChecked={pkg?.featured ?? false}
-          label="Featured on homepage"
-          description="Highlights this package in the featured carousel."
-        />
+      <div className="rounded-xl border border-slate-200/70 bg-slate-50/60 p-4">
         <Checkbox
           name="published"
           defaultChecked={pkg?.published ?? true}

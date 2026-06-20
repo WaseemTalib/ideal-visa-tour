@@ -26,8 +26,8 @@ export function PackageCard({ pkg, showAgentPrice = false }: { pkg: TravelPackag
   const savings = hasDiscount ? pkg.price - (pkg.discount_price ?? 0) : 0;
   const showAgent = showAgentPrice && pkg.agent_price != null;
   const CategoryIcon = CATEGORY_ICON[pkg.type];
-  const from = pkg.from_location?.name ?? "Flexible";
-  const to = pkg.to_location?.name ?? "Destination";
+  const from = pkg.from_location ?? "Flexible";
+  const to = pkg.to_location ?? "Destination";
 
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-teal-200 hover:shadow-[var(--shadow-lift)]">
@@ -70,7 +70,7 @@ export function PackageCard({ pkg, showAgentPrice = false }: { pkg: TravelPackag
         <div className="mt-4 grid gap-2 text-sm text-slate-600">
           <span className="flex items-center gap-2">
             <CalendarDays size={15} className="text-teal-700" />
-            {formatDate(pkg.start_date ?? pkg.available_from)} — {formatDate(pkg.end_date ?? pkg.available_to)}
+            {formatDate(pkg.start_date)} — {formatDate(pkg.end_date)}
           </span>
           {pkg.seats_available != null ? (
             <span className="flex items-center gap-2">

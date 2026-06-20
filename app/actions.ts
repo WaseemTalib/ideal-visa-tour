@@ -124,8 +124,8 @@ export async function savePackageAction(_prev: ActionResult | null, formData: Fo
     short_description: parsed.short_description,
     description: parsed.description,
     main_image_url: parsed.main_image_url || null,
-    from_location_id: parsed.from_location_id,
-    to_location_id: parsed.to_location_id,
+    from_location: parsed.from_location || null,
+    to_location: parsed.to_location,
     price: parsed.price,
     agent_price: parsed.agent_price,
     discount_price: parsed.discount_price,
@@ -133,8 +133,6 @@ export async function savePackageAction(_prev: ActionResult | null, formData: Fo
     duration_nights: parsed.duration_nights,
     start_date: parsed.start_date,
     end_date: parsed.end_date,
-    available_from: parsed.start_date,
-    available_to: parsed.end_date,
     type: parsed.type,
     group_size: parsed.group_size,
     total_seats: parsed.total_seats,
@@ -146,7 +144,6 @@ export async function savePackageAction(_prev: ActionResult | null, formData: Fo
     included: listFromText(formData.get("included")),
     excluded: listFromText(formData.get("excluded")),
     itinerary: itineraryFromText(formData.get("itinerary")),
-    featured: formData.get("featured") === "on",
     published: formData.get("published") === "on",
     seo_title: null,
     seo_description: null,
@@ -248,35 +245,6 @@ export async function deleteLocationAction(formData: FormData) {
   }
   revalidatePath("/dashboard/locations");
   revalidatePath("/");
-}
-
-export async function updateInquiryStatusAction(formData: FormData) {
-  await requireAdmin();
-  const status = String(formData.get("status"));
-  if (!["new", "contacted", "confirmed", "rejected"].includes(status)) return;
-  const id = String(formData.get("id"));
-  try {
-    await requireDb()
-      .update(schema.inquiries)
-      .set({ status: status as typeof schema.inquiryStatus.enumValues[number], updated_at: new Date() })
-      .where(eq(schema.inquiries.id, id));
-  } catch (error) {
-    console.error(error);
-    return;
-  }
-  revalidatePath("/dashboard/inquiries");
-}
-
-export async function deleteInquiryAction(formData: FormData) {
-  await requireAdmin();
-  const id = String(formData.get("id"));
-  try {
-    await requireDb().delete(schema.inquiries).where(eq(schema.inquiries.id, id));
-  } catch (error) {
-    console.error(error);
-    return;
-  }
-  revalidatePath("/dashboard/inquiries");
 }
 
 export async function saveTestimonialAction(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {

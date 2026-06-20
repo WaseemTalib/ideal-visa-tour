@@ -36,6 +36,27 @@
       "when": 1781956876953,
       "tag": "0004_replace_package_type",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1781960803126,
+      "tag": "0005_drop_inquiries_and_unused",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781961600738,
+      "tag": "0006_add_text_locations",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1781961626355,
+      "tag": "0007_drop_location_fks",
+      "breakpoints": true
     }
   ]
 }

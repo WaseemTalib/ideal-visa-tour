@@ -23,7 +23,7 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
   const pkg = await getPackageBySlug(slug);
   if (!pkg) notFound();
   const [related, settings, session] = await Promise.all([
-    getPackages({ to: pkg.to_location?.slug }).then((items) => items.filter((item) => item.id !== pkg.id).slice(0, 3)),
+    getPackages({ to: pkg.to_location ?? undefined }).then((items) => items.filter((item) => item.id !== pkg.id).slice(0, 3)),
     getSiteSettings(),
     getCurrentUser(),
   ]);
@@ -41,9 +41,9 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
               <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-4xl">{pkg.title}</h1>
               <p className="mt-4 text-lg leading-8 text-slate-600">{pkg.short_description}</p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <Stat label="Route" value={`${pkg.from_location?.name ?? "Flexible"} to ${pkg.to_location?.name ?? "Destination"}`} />
+                <Stat label="Route" value={`${pkg.from_location ?? "Flexible"} to ${pkg.to_location ?? "Destination"}`} />
                 <Stat label="Duration" value={`${pkg.duration_days} days / ${pkg.duration_nights} nights`} />
-                <Stat label="Availability" value={`${formatDate(pkg.available_from ?? pkg.start_date)} - ${formatDate(pkg.available_to ?? pkg.end_date)}`} />
+                <Stat label="Departure window" value={`${formatDate(pkg.start_date)} - ${formatDate(pkg.end_date)}`} />
                 <Stat label="Price" value={formatCurrency(pkg.discount_price ?? pkg.price)} />
                 {showAgentPrice && pkg.agent_price != null ? (
                   <Stat label="Agent price" value={formatCurrency(pkg.agent_price)} />

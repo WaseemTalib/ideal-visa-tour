@@ -6,7 +6,6 @@ import { useTransition } from "react";
 import {
   BarChart3,
   ImageUp,
-  Inbox,
   KeyRound,
   Loader2,
   MapPinned,
@@ -23,7 +22,6 @@ const links = [
   { label: "Overview", href: "/dashboard", Icon: BarChart3 },
   { label: "Packages", href: "/dashboard/packages", Icon: Package },
   { label: "Locations", href: "/dashboard/locations", Icon: MapPinned },
-  { label: "Inquiries", href: "/dashboard/inquiries", Icon: Inbox },
   { label: "Users", href: "/dashboard/users", Icon: UserCheck },
   { label: "Content", href: "/dashboard/content", Icon: Settings },
   { label: "Testimonials", href: "/dashboard/testimonials", Icon: Star },

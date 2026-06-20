@@ -7,7 +7,7 @@ import { PackageCard } from "@/components/public/package-card";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth";
-import { getLocations, getPackages, getSiteSettings } from "@/lib/data";
+import { getDistinctDestinations, getPackages, getSiteSettings } from "@/lib/data";
 import { PACKAGE_CATEGORY_LABEL, type PackageCategory } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "All Packages" };
@@ -50,9 +50,9 @@ export default async function PackagesPage({
   const startDate = clean(sp.startDate);
   const endDate = clean(sp.endDate);
 
-  const [allPackages, locations, settings, session] = await Promise.all([
+  const [allPackages, destinations, settings, session] = await Promise.all([
     getPackages({ to: toParam, startDate, endDate }),
-    getLocations(),
+    getDistinctDestinations(),
     getSiteSettings(),
     getCurrentUser(),
   ]);
@@ -140,11 +140,8 @@ export default async function PackagesPage({
               <Label>Destination</Label>
               <Select name="to" defaultValue={toParam ?? ""}>
                 <option value="">Any destination</option>
-                {locations.map((loc) => (
-                  <option key={loc.id} value={loc.slug}>
-                    {loc.name}
-                    {loc.country ? ` · ${loc.country}` : ""}
-                  </option>
+                {destinations.map((dest) => (
+                  <option key={dest} value={dest}>{dest}</option>
                 ))}
               </Select>
             </div>
